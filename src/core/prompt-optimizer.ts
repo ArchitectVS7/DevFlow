@@ -1,8 +1,7 @@
 /**
- * PromptOptimizer - Analyzes and improves prompts using the CLEAR Framework
- * CLEAR Framework: Concise, Logical, Explicit, Adaptive, Reflective
- * Developed by Dr. Leo Lo, University of New Mexico
- * Reference: https://guides.library.tamucc.edu/prompt-engineering/clear
+ * PromptOptimizer - Analyzes and improves prompts using the COSTAR Framework
+ * COSTAR Framework: Context, Objective, Style, Tone, Audience, Response
+ * Reference: Based on Gemini migration guide for COSTAR framework
  */
 
 export type OptimizerMode = 'fast' | 'deep';
@@ -14,81 +13,85 @@ export interface PromptAnalysis {
   suggestions: string[];
 }
 
-// CLEAR Framework Interfaces
-export interface ConciseAnalysis {
+// COSTAR Framework Interfaces
+export interface ContextAnalysis {
   score: number; // 0-100
-  verbosityCount: number;
-  pleasantriesCount: number;
-  signalToNoiseRatio: number;
+  hasBackground: boolean;
+  hasConstraints: boolean;
+  situationClarity: number; // 0-100%
   issues: string[];
   suggestions: string[];
 }
 
-export interface LogicAnalysis {
+export interface ObjectiveAnalysis {
   score: number; // 0-100
-  hasCoherentFlow: boolean;
-  sequencingIssues: string[];
-  suggestedOrder: string[];
+  goalClarity: boolean;
+  measurable: boolean;
+  achievable: boolean;
+  clarityScore: number; // 0-100%
   issues: string[];
   suggestions: string[];
 }
 
-export interface ExplicitAnalysis {
+export interface StyleAnalysis {
   score: number; // 0-100
-  hasPersona: boolean;
-  hasOutputFormat: boolean;
-  hasToneStyle: boolean;
-  hasSuccessCriteria: boolean;
-  hasExamples: boolean;
+  formatSpecified: boolean;
+  structureDefined: boolean;
+  presentationClear: boolean;
   issues: string[];
   suggestions: string[];
 }
 
-export interface AdaptiveAnalysis {
+export interface ToneAnalysis {
   score: number; // 0-100
-  alternativePhrasings: string[];
-  alternativeStructures: Array<{
-    name: string;
-    structure: string;
-    benefits: string;
-  }>;
-  temperatureRecommendation: number;
+  toneSpecified: boolean;
+  voiceConsistency: boolean;
+  formalityLevel: 'formal' | 'casual' | 'technical' | 'unspecified';
   issues: string[];
   suggestions: string[];
 }
 
-export interface ReflectiveAnalysis {
+export interface AudienceAnalysis {
   score: number; // 0-100
-  validationChecklist: string[];
-  edgeCases: string[];
-  potentialIssues: string[];
-  factCheckingSteps: string[];
-  qualityCriteria: string[];
+  audienceSpecified: boolean;
+  skillLevelDefined: boolean;
+  needsAddressed: boolean;
   issues: string[];
   suggestions: string[];
 }
 
-export interface CLEARResult {
-  conciseness: ConciseAnalysis;
-  logic: LogicAnalysis;
-  explicitness: ExplicitAnalysis;
-  adaptiveness?: AdaptiveAnalysis; // Only in deep mode
-  reflectiveness?: ReflectiveAnalysis; // Only in deep mode
+export interface ResponseAnalysis {
+  score: number; // 0-100
+  outputFormatClear: boolean;
+  deliverablesSpecified: boolean;
+  examplesProvided: boolean;
+  issues: string[];
+  suggestions: string[];
+}
+
+export interface COSTARResult {
+  context: ContextAnalysis;
+  objective: ObjectiveAnalysis;
+  style: StyleAnalysis;
+  tone?: ToneAnalysis; // Only in deep mode
+  audience?: AudienceAnalysis; // Only in deep mode
+  response?: ResponseAnalysis; // Only in deep mode
   overallScore: number;
   improvedPrompt: string;
   changesSummary: Array<{
-    component: 'C' | 'L' | 'E' | 'A' | 'R';
+    component: 'C' | 'O' | 'S' | 'T' | 'A' | 'R';
     change: string;
   }>;
 }
 
-export interface CLEARScore {
+export interface COSTARScore {
   overall: number;
-  conciseness: number;
-  logic: number;
-  explicitness: number;
-  adaptiveness?: number;
-  reflectiveness?: number;
+  context: number;
+  objective: number;
+  style: number;
+  tone?: number;
+  audience?: number;
+  response?: number;
   rating: 'excellent' | 'good' | 'needs-improvement' | 'poor';
 }
 
@@ -149,23 +152,30 @@ export class PromptOptimizer {
   /**
    * Perform smart triage to determine if deep analysis is recommended
    */
-  performTriage(prompt: string): TriageResult {
+  performTriage(prompt: string, costarResult?: COSTARResult): TriageResult {
     const reasons: string[] = [];
 
-    // Check 1: Short prompts (< 20 characters)
-    if (prompt.trim().length < 20) {
-      reasons.push('Prompt is very short (< 20 characters)');
-    }
+    if (costarResult) {
+      // Use COSTAR scores for triage
+      if (costarResult.context.score < 60) {
+        reasons.push('Context score below 60% - needs richer background information');
+      }
+      if (costarResult.objective.score < 60) {
+        reasons.push('Objective score below 60% - goal needs clarification');
+      }
+      if (costarResult.style.score < 50) {
+        reasons.push('Style score below 50% - output format not well-defined');
+      }
+    } else {
+      // Fallback triage logic
+      if (prompt.trim().length < 20) {
+        reasons.push('Prompt is very short (< 20 characters)');
+      }
 
-    // Check 2: Missing critical elements
-    const criticalElements = this.countMissingCriticalElements(prompt);
-    if (criticalElements >= 3) {
-      reasons.push(`Missing ${criticalElements} critical elements (context, tech stack, success criteria, user needs, expected output)`);
-    }
-
-    // Check 3: Vague scope words without context
-    if (this.hasVagueScopeWithoutContext(prompt)) {
-      reasons.push('Contains vague scope words ("app", "system", "project") without sufficient context');
+      const criticalElements = this.countMissingCriticalElements(prompt);
+      if (criticalElements >= 3) {
+        reasons.push(`Missing ${criticalElements} critical elements`);
+      }
     }
 
     return {
@@ -197,7 +207,7 @@ export class PromptOptimizer {
   }
 
   /**
-   * Generate an improved version of the prompt
+   * Generate an improved version of the prompt (legacy method)
    */
   improve(prompt: string, mode: OptimizerMode = 'fast'): ImprovedPrompt {
     const analysis = this.analyze(prompt);
@@ -228,56 +238,62 @@ export class PromptOptimizer {
   }
 
   /**
-   * Apply CLEAR Framework analysis to a prompt
-   * C = Concise, L = Logical, E = Explicit, A = Adaptive (deep only), R = Reflective (deep only)
+   * Apply COSTAR Framework analysis to a prompt
+   * C = Context, O = Objective, S = Style, T = Tone (deep), A = Audience (deep), R = Response (deep)
    */
-  applyCLEARFramework(prompt: string, mode: OptimizerMode = 'fast'): CLEARResult {
-    // Analyze all components
-    const conciseness = this.analyzeConciseness(prompt);
-    const logic = this.analyzeLogic(prompt);
-    const explicitness = this.analyzeExplicitness(prompt);
+  applyCOSTARFramework(prompt: string, mode: OptimizerMode = 'fast'): COSTARResult {
+    // Analyze core components (always)
+    const context = this.analyzeContext(prompt);
+    const objective = this.analyzeObjective(prompt);
+    const style = this.analyzeStyle(prompt);
 
-    let adaptiveness: AdaptiveAnalysis | undefined;
-    let reflectiveness: ReflectiveAnalysis | undefined;
+    let tone: ToneAnalysis | undefined;
+    let audience: AudienceAnalysis | undefined;
+    let response: ResponseAnalysis | undefined;
 
     if (mode === 'deep') {
-      adaptiveness = this.analyzeAdaptiveness(prompt);
-      reflectiveness = this.analyzeReflectiveness(prompt);
+      tone = this.analyzeTone(prompt);
+      audience = this.analyzeAudience(prompt);
+      response = this.analyzeResponse(prompt);
     }
 
-    // Generate improved prompt based on CLEAR analysis
-    const improvedPrompt = this.generateCLEARImprovedPrompt(prompt, {
-      conciseness,
-      logic,
-      explicitness,
-      adaptiveness,
-      reflectiveness,
+    // Generate improved prompt based on COSTAR analysis
+    const improvedPrompt = this.generateCOSTARImprovedPrompt(prompt, {
+      context,
+      objective,
+      style,
+      tone,
+      audience,
+      response,
     });
 
-    // Generate changes summary with CLEAR labels
-    const changesSummary = this.generateCLEARChangesSummary(prompt, improvedPrompt, {
-      conciseness,
-      logic,
-      explicitness,
-      adaptiveness,
-      reflectiveness,
+    // Generate changes summary with COSTAR labels
+    const changesSummary = this.generateCOSTARChangesSummary(prompt, improvedPrompt, {
+      context,
+      objective,
+      style,
+      tone,
+      audience,
+      response,
     });
 
     // Calculate overall score
-    const overallScore = this.calculateCLEARScore({
-      conciseness,
-      logic,
-      explicitness,
-      adaptiveness,
-      reflectiveness,
+    const overallScore = this.calculateCOSTARScore({
+      context,
+      objective,
+      style,
+      tone,
+      audience,
+      response,
     }).overall;
 
     return {
-      conciseness,
-      logic,
-      explicitness,
-      adaptiveness,
-      reflectiveness,
+      context,
+      objective,
+      style,
+      tone,
+      audience,
+      response,
       overallScore,
       improvedPrompt,
       changesSummary,
@@ -285,382 +301,361 @@ export class PromptOptimizer {
   }
 
   /**
-   * Analyze Conciseness (C): Brevity and clarity
+   * Analyze Context (C): Background, situation, and constraints
    */
-  analyzeConciseness(prompt: string): ConciseAnalysis {
+  analyzeContext(prompt: string): ContextAnalysis {
     const issues: string[] = [];
     const suggestions: string[] = [];
 
-    // Count pleasantries
-    const pleasantries = [
-      'please',
-      'could you',
-      'would you',
-      'if possible',
-      'maybe',
-      'perhaps',
-      'kindly',
-      'thank you',
-    ];
-    let pleasantriesCount = 0;
-    pleasantries.forEach((word) => {
-      const regex = new RegExp(`\\b${word}\\b`, 'gi');
-      const matches = prompt.match(regex);
-      if (matches) {
-        pleasantriesCount += matches.length;
-      }
-    });
+    // Check for background/situation
+    const hasBackground =
+      /\b(background|context|currently|existing|situation|given that|considering)\b/i.test(
+        prompt
+      ) || /\b(you are|you're working|the project|this is)\b/i.test(prompt);
 
-    if (pleasantriesCount > 0) {
-      issues.push(`Contains ${pleasantriesCount} unnecessary pleasantries`);
-      suggestions.push('[C] Remove pleasantries - be direct and concise');
+    if (!hasBackground) {
+      issues.push('No background or situational context provided');
+      suggestions.push('[C] Add background: Explain the current situation or problem context');
     }
 
-    // Count verbose language
-    const verbosePatterns = [
-      /in order to/gi,
-      /due to the fact that/gi,
-      /at this point in time/gi,
-      /for the purpose of/gi,
-      /in the event that/gi,
-    ];
-    let verbosityCount = 0;
-    verbosePatterns.forEach((pattern) => {
-      const matches = prompt.match(pattern);
-      if (matches) {
-        verbosityCount += matches.length;
-      }
-    });
+    // Check for constraints
+    const hasConstraints =
+      /\b(constraint|limitation|requirement|must|cannot|should not|restricted)\b/i.test(prompt) ||
+      /\b(using|with|without|requires|needs)\b/i.test(prompt);
 
-    if (verbosityCount > 0) {
-      issues.push(`Contains ${verbosityCount} verbose phrases`);
-      suggestions.push('[C] Replace verbose phrases with concise alternatives');
+    if (!hasConstraints) {
+      issues.push('Constraints or requirements not specified');
+      suggestions.push(
+        '[C] Specify constraints: Technologies, limitations, or requirements that apply'
+      );
     }
 
-    // Calculate signal-to-noise ratio
-    const wordCount = prompt.split(/\s+/).length;
-    const noiseWords = pleasantriesCount + verbosityCount;
-    const signalToNoiseRatio = wordCount > 0 ? (wordCount - noiseWords) / wordCount : 0;
+    // Calculate situation clarity
+    let situationClarity = 0;
+    if (hasBackground) situationClarity += 50;
+    if (hasConstraints) situationClarity += 30;
+    if (this.hasTechnicalDetails(prompt)) situationClarity += 20;
 
     // Calculate score
-    let score = 100;
-    score -= pleasantriesCount * 5; // -5 points per pleasantry
-    score -= verbosityCount * 10; // -10 points per verbose phrase
-
-    if (wordCount > 200 && !this.hasContext(prompt)) {
-      issues.push('Long prompt without clear structure');
-      suggestions.push('[C] Break into sections for clarity');
-      score -= 10;
-    }
-
-    score = Math.max(0, Math.min(100, score));
+    let score = 0;
+    if (hasBackground) score += 50;
+    if (hasConstraints) score += 30;
+    if (this.hasTechnicalDetails(prompt)) score += 20;
 
     return {
-      score,
-      verbosityCount,
-      pleasantriesCount,
-      signalToNoiseRatio,
+      score: Math.min(100, score),
+      hasBackground,
+      hasConstraints,
+      situationClarity,
       issues,
       suggestions,
     };
   }
 
   /**
-   * Analyze Logic (L): Structured and coherent prompts
+   * Analyze Objective (O): Clear goal and desired outcome
    */
-  analyzeLogic(prompt: string): LogicAnalysis {
+  analyzeObjective(prompt: string): ObjectiveAnalysis {
     const issues: string[] = [];
     const suggestions: string[] = [];
-    const sequencingIssues: string[] = [];
 
-    // Check for coherent flow - ideal sequence: context → requirements → constraints → output
-    const hasContextFirst = this.hasContext(prompt.substring(0, prompt.length / 2));
-    const hasOutputLast = this.hasExpectedOutput(prompt.substring(prompt.length / 2));
+    // Check for clear goal
+    const goalClarity =
+      /^(create|build|develop|implement|add|update|fix|refactor|design|generate)\b/i.test(
+        prompt.trim()
+      ) || /\b(objective|goal|purpose|aim|want to|need to)\b/i.test(prompt);
 
-    let hasCoherentFlow = true;
-
-    // Check if success criteria comes before requirements
-    const successMatch = prompt.match(/\b(success|complete|done|measure)/i);
-    const requirementMatch = prompt.match(/\b(require|need|must|should have)/i);
-
-    if (successMatch && requirementMatch) {
-      const successIndex = successMatch.index || 0;
-      const requirementIndex = requirementMatch.index || 0;
-
-      if (successIndex < requirementIndex && successIndex < prompt.length / 3) {
-        sequencingIssues.push('Success criteria appears before requirements');
-        hasCoherentFlow = false;
-      }
+    if (!goalClarity) {
+      issues.push('Goal or objective not clearly stated');
+      suggestions.push('[O] State objective clearly: Use action verbs (create, build, implement)');
     }
 
-    if (!hasContextFirst && this.hasContext(prompt)) {
-      sequencingIssues.push('Context appears late in prompt - should be at the beginning');
-      hasCoherentFlow = false;
+    // Check if measurable
+    const measurable =
+      this.hasSuccessCriteria(prompt) ||
+      /\b(measure|metric|complete when|done when|success)\b/i.test(prompt);
+
+    if (!measurable) {
+      issues.push('Objective not measurable');
+      suggestions.push('[O] Make objective measurable: Define what success looks like');
     }
 
-    if (!hasOutputLast && this.hasExpectedOutput(prompt)) {
-      sequencingIssues.push('Expected output appears early - should be near the end');
-      hasCoherentFlow = false;
+    // Check if achievable
+    const achievable = !this.hasUnrealisticScope(prompt);
+
+    if (!achievable) {
+      issues.push('Objective may be too broad or unrealistic');
+      suggestions.push('[O] Refine scope: Break down into achievable, focused goal');
     }
 
-    // Suggest optimal order
-    const suggestedOrder = [
-      '1. Context/Background (what exists now)',
-      '2. Objective (what you want to achieve)',
-      '3. Requirements (specific needs)',
-      '4. Technical Constraints',
-      '5. Expected Output',
-      '6. Success Criteria',
-    ];
+    // Calculate clarity score
+    let clarityScore = 0;
+    if (goalClarity) clarityScore += 40;
+    if (measurable) clarityScore += 30;
+    if (achievable) clarityScore += 30;
 
-    if (!hasCoherentFlow) {
-      issues.push('Logical flow could be improved');
-      suggestions.push('[L] Restructure prompt following optimal sequence');
-    }
-
-    // Check for scattered information
-    const lines = prompt.split(/\n/).filter((l) => l.trim());
-    if (lines.length > 5 && lines.length < 3) {
-      issues.push('Information appears scattered');
-      suggestions.push('[L] Group related concepts together');
-    }
-
-    // Calculate score
-    let score = 100;
-    score -= sequencingIssues.length * 15; // -15 points per sequencing issue
-    if (!hasCoherentFlow) score -= 20;
-
-    score = Math.max(0, Math.min(100, score));
+    // Calculate overall score
+    let score = 0;
+    if (goalClarity) score += 40;
+    if (measurable) score += 30;
+    if (achievable) score += 30;
 
     return {
-      score,
-      hasCoherentFlow,
-      sequencingIssues,
-      suggestedOrder,
+      score: Math.min(100, score),
+      goalClarity,
+      measurable,
+      achievable,
+      clarityScore,
       issues,
       suggestions,
     };
   }
 
   /**
-   * Analyze Explicitness (E): Clear output specifications
+   * Analyze Style (S): Format, structure, and presentation
    */
-  analyzeExplicitness(prompt: string): ExplicitAnalysis {
+  analyzeStyle(prompt: string): StyleAnalysis {
     const issues: string[] = [];
     const suggestions: string[] = [];
 
-    // Check for persona/role
-    const hasPersona =
-      /\b(as a|role|persona|you are|act as|expert|developer|designer|engineer)\b/i.test(prompt);
+    // Check for format specification
+    const formatSpecified =
+      /\b(format|markdown|json|code|list|table|bullet|numbered|xml|yaml)\b/i.test(prompt) ||
+      /\b(provide as|structure as|present as|organize)\b/i.test(prompt);
 
-    if (!hasPersona) {
-      issues.push('No persona or role specified');
-      suggestions.push('[E] Specify who should respond (e.g., "As a senior developer...")');
+    if (!formatSpecified) {
+      issues.push('Output format not specified');
+      suggestions.push(
+        '[S] Specify format: Define how output should be presented (markdown, code, list)'
+      );
     }
 
-    // Check for output format
-    const hasOutputFormat =
-      /\b(format|structure|markdown|json|code|list|table|bullet|numbered)\b/i.test(prompt) ||
+    // Check for structure definition
+    const structureDefined =
+      /\b(section|heading|organize|structure|step|phase|part)\b/i.test(prompt) ||
+      /\b(include|contain|with|having)\b/i.test(prompt);
+
+    if (!structureDefined) {
+      issues.push('Structure or organization not defined');
+      suggestions.push('[S] Define structure: Specify how information should be organized');
+    }
+
+    // Check for presentation clarity
+    const presentationClear =
+      formatSpecified && (structureDefined || /\b(example|sample|like|such as)\b/i.test(prompt));
+
+    if (!presentationClear) {
+      suggestions.push(
+        '[S] Clarify presentation: Add examples or specify organization preferences'
+      );
+    }
+
+    // Calculate score
+    let score = 0;
+    if (formatSpecified) score += 40;
+    if (structureDefined) score += 35;
+    if (presentationClear) score += 25;
+
+    return {
+      score: Math.min(100, score),
+      formatSpecified,
+      structureDefined,
+      presentationClear,
+      issues,
+      suggestions,
+    };
+  }
+
+  /**
+   * Analyze Tone (T): Voice and formality level (Deep mode only)
+   */
+  analyzeTone(prompt: string): ToneAnalysis {
+    const issues: string[] = [];
+    const suggestions: string[] = [];
+
+    // Check for tone specification
+    const toneSpecified =
+      /\b(tone|voice|style|formal|informal|casual|professional|friendly|technical)\b/i.test(prompt);
+
+    if (!toneSpecified) {
+      issues.push('Tone or voice not specified');
+      suggestions.push(
+        '[T] Specify tone: Define desired communication style (professional, casual, technical)'
+      );
+    }
+
+    // Check voice consistency requirements
+    const voiceConsistency =
+      /\b(consistent|throughout|maintain|keep)\b/i.test(prompt) && toneSpecified;
+
+    // Determine formality level
+    let formalityLevel: 'formal' | 'casual' | 'technical' | 'unspecified' = 'unspecified';
+
+    if (/\b(formal|professional|business)\b/i.test(prompt)) {
+      formalityLevel = 'formal';
+    } else if (/\b(casual|friendly|conversational|informal)\b/i.test(prompt)) {
+      formalityLevel = 'casual';
+    } else if (/\b(technical|precise|expert|developer)\b/i.test(prompt)) {
+      formalityLevel = 'technical';
+    }
+
+    if (formalityLevel === 'unspecified' && toneSpecified) {
+      suggestions.push(
+        '[T] Clarify formality: Specify whether formal, casual, or technical tone is preferred'
+      );
+    }
+
+    // Calculate score
+    let score = 0;
+    if (toneSpecified) score += 50;
+    if (voiceConsistency) score += 25;
+    if (formalityLevel !== 'unspecified') score += 25;
+
+    return {
+      score: Math.min(100, score),
+      toneSpecified,
+      voiceConsistency,
+      formalityLevel,
+      issues,
+      suggestions,
+    };
+  }
+
+  /**
+   * Analyze Audience (A): Target users and skill level (Deep mode only)
+   */
+  analyzeAudience(prompt: string): AudienceAnalysis {
+    const issues: string[] = [];
+    const suggestions: string[] = [];
+
+    // Check for audience specification
+    const audienceSpecified =
+      /\b(for|target|audience|user|developer|beginner|expert|senior|junior|team)\b/i.test(prompt) ||
+      /\b(who will|intended for|designed for)\b/i.test(prompt);
+
+    if (!audienceSpecified) {
+      issues.push('Target audience not specified');
+      suggestions.push(
+        '[A] Define audience: Specify who will use this (developers, beginners, experts)'
+      );
+    }
+
+    // Check for skill level definition
+    const skillLevelDefined =
+      /\b(beginner|intermediate|advanced|expert|senior|junior|novice|experienced)\b/i.test(
+        prompt
+      ) || /\b(familiar with|knowledge of|assumes)\b/i.test(prompt);
+
+    if (!skillLevelDefined && audienceSpecified) {
+      suggestions.push('[A] Specify skill level: Define expertise level of target audience');
+    }
+
+    // Check if audience needs are addressed
+    const needsAddressed =
+      audienceSpecified &&
+      (skillLevelDefined || /\b(needs|requires|wants|looking for)\b/i.test(prompt));
+
+    if (!needsAddressed && audienceSpecified) {
+      suggestions.push('[A] Address needs: Consider specific needs of the target audience');
+    }
+
+    // Calculate score
+    let score = 0;
+    if (audienceSpecified) score += 40;
+    if (skillLevelDefined) score += 35;
+    if (needsAddressed) score += 25;
+
+    return {
+      score: Math.min(100, score),
+      audienceSpecified,
+      skillLevelDefined,
+      needsAddressed,
+      issues,
+      suggestions,
+    };
+  }
+
+  /**
+   * Analyze Response (R): Expected output and deliverables (Deep mode only)
+   */
+  analyzeResponse(prompt: string): ResponseAnalysis {
+    const issues: string[] = [];
+    const suggestions: string[] = [];
+
+    // Check for clear output format
+    const outputFormatClear =
+      /\b(output|result|deliverable|return|provide|generate)\b/i.test(prompt) ||
       this.hasExpectedOutput(prompt);
 
-    if (!hasOutputFormat) {
-      issues.push('Output format not specified');
-      suggestions.push('[E] Define expected format (e.g., "Provide as a numbered list...")');
+    if (!outputFormatClear) {
+      issues.push('Expected output format not clear');
+      suggestions.push('[R] Clarify output: Specify what should be returned or delivered');
     }
 
-    // Check for tone/style
-    const hasToneStyle =
-      /\b(tone|style|formal|casual|professional|concise|detailed|technical)\b/i.test(prompt);
+    // Check for deliverables specification
+    const deliverablesSpecified =
+      /\b(deliverable|include|provide|contain|with|having)\b/i.test(prompt) &&
+      /\b(code|documentation|test|example|file)\b/i.test(prompt);
 
-    if (!hasToneStyle) {
-      issues.push('Tone or style not specified');
-      suggestions.push('[E] Specify desired tone (e.g., "Use professional tone...")');
-    }
-
-    // Check for success criteria
-    const hasSuccessCriteria = this.hasSuccessCriteria(prompt);
-
-    if (!hasSuccessCriteria) {
-      issues.push('Success criteria not defined');
-      suggestions.push('[E] Add measurable success criteria');
+    if (!deliverablesSpecified) {
+      issues.push('Specific deliverables not listed');
+      suggestions.push(
+        '[R] List deliverables: Specify concrete outputs (code, docs, tests, examples)'
+      );
     }
 
     // Check for examples
-    const hasExamples = /\b(example|such as|like|e\.g\.|for instance)\b/i.test(prompt);
+    const examplesProvided =
+      /\b(example|sample|such as|like|e\.g\.|for instance|similar to)\b/i.test(prompt);
 
-    if (!hasExamples && prompt.length < 100) {
-      suggestions.push('[E] Consider adding examples for clarity');
-    }
-
-    // Calculate score based on what's present
-    let score = 0;
-    if (hasPersona) score += 20;
-    if (hasOutputFormat) score += 30;
-    if (hasToneStyle) score += 20;
-    if (hasSuccessCriteria) score += 20;
-    if (hasExamples) score += 10;
-
-    return {
-      score,
-      hasPersona,
-      hasOutputFormat,
-      hasToneStyle,
-      hasSuccessCriteria,
-      hasExamples,
-      issues,
-      suggestions,
-    };
-  }
-
-  /**
-   * Analyze Adaptiveness (A): Flexibility and customization
-   */
-  analyzeAdaptiveness(prompt: string): AdaptiveAnalysis {
-    const issues: string[] = [];
-    const suggestions: string[] = [];
-
-    // Generate alternative phrasings
-    const alternativePhrasings = this.generateAlternativePhrasings(prompt);
-
-    // Generate alternative structures
-    const alternativeStructures = this.suggestAlternativeStructures(prompt).map((s) => ({
-      name: s.structure.split(':')[0],
-      structure: s.structure,
-      benefits: s.benefits,
-    }));
-
-    // Recommend temperature based on prompt type
-    let temperatureRecommendation = 0.7; // default
-
-    if (/creative|brainstorm|ideas|innovate/i.test(prompt)) {
-      temperatureRecommendation = 0.9;
-      suggestions.push('[A] Use higher temperature (0.8-0.9) for creative tasks');
-    } else if (/code|technical|precise|exact/i.test(prompt)) {
-      temperatureRecommendation = 0.3;
-      suggestions.push('[A] Use lower temperature (0.2-0.4) for precise technical tasks');
-    }
-
-    // Check if prompt is too rigid
-    if (
-      /\b(must|only|exactly|precisely|never|always)\b/gi.test(prompt) &&
-      prompt.match(/\b(must|only|exactly|precisely|never|always)\b/gi)!.length > 3
-    ) {
-      issues.push('Prompt may be too rigid - limits creative solutions');
-      suggestions.push('[A] Consider allowing alternative approaches where appropriate');
-    }
-
-    // Calculate score based on flexibility
-    let score = 60; // base score
-
-    if (alternativePhrasings.length >= 3) score += 20;
-    if (/\b(or|alternative|option|variation)\b/i.test(prompt)) score += 10;
-    if (temperatureRecommendation > 0.5 && temperatureRecommendation < 0.9) score += 10;
-
-    score = Math.max(0, Math.min(100, score));
-
-    return {
-      score,
-      alternativePhrasings,
-      alternativeStructures,
-      temperatureRecommendation,
-      issues,
-      suggestions,
-    };
-  }
-
-  /**
-   * Analyze Reflectiveness (R): Continuous evaluation and improvement
-   */
-  analyzeReflectiveness(prompt: string): ReflectiveAnalysis {
-    const issues: string[] = [];
-    const suggestions: string[] = [];
-
-    // Create validation checklist
-    const validationChecklist = [
-      'Verify all requirements are clearly stated',
-      'Check that success criteria are measurable',
-      'Ensure technical constraints are realistic',
-      'Validate that the scope is achievable',
-    ];
-
-    // Identify edge cases
-    const edgeCases = this.identifyEdgeCases(prompt);
-
-    // Identify potential issues
-    const potentialIssues = this.identifyPotentialIssues(prompt);
-
-    // Fact-checking steps
-    const factCheckingSteps = [
-      'Verify AI output matches specified requirements',
-      'Cross-reference technical details with documentation',
-      'Validate examples and code snippets for accuracy',
-      'Check for logical consistency in the response',
-    ];
-
-    // Quality criteria
-    const qualityCriteria = [
-      'Response addresses all stated requirements',
-      'Output follows specified format and structure',
-      'Technical details are accurate and current',
-      'Edge cases are properly handled',
-    ];
-
-    if (edgeCases.length === 0) {
-      suggestions.push('[R] Add specific edge cases to consider');
-    }
-
-    if (!this.hasSuccessCriteria(prompt)) {
-      issues.push('No validation criteria provided');
-      suggestions.push('[R] Define how to validate the AI output');
+    if (!examplesProvided) {
+      suggestions.push('[R] Provide examples: Include sample outputs or references');
     }
 
     // Calculate score
-    let score = 70; // base score
-
-    if (edgeCases.length > 2) score += 10;
-    if (this.hasSuccessCriteria(prompt)) score += 20;
-    if (potentialIssues.length < 3) score += 10; // fewer issues = better quality
-
-    score = Math.max(0, Math.min(100, score));
+    let score = 0;
+    if (outputFormatClear) score += 40;
+    if (deliverablesSpecified) score += 40;
+    if (examplesProvided) score += 20;
 
     return {
-      score,
-      validationChecklist,
-      edgeCases,
-      potentialIssues,
-      factCheckingSteps,
-      qualityCriteria,
+      score: Math.min(100, score),
+      outputFormatClear,
+      deliverablesSpecified,
+      examplesProvided,
       issues,
       suggestions,
     };
   }
 
   /**
-   * Calculate overall CLEAR score with weighted components
+   * Calculate overall COSTAR score with weighted components
    */
-  calculateCLEARScore(analysis: {
-    conciseness: ConciseAnalysis;
-    logic: LogicAnalysis;
-    explicitness: ExplicitAnalysis;
-    adaptiveness?: AdaptiveAnalysis;
-    reflectiveness?: ReflectiveAnalysis;
-  }): CLEARScore {
-    const { conciseness, logic, explicitness, adaptiveness, reflectiveness } = analysis;
+  calculateCOSTARScore(analysis: {
+    context: ContextAnalysis;
+    objective: ObjectiveAnalysis;
+    style: StyleAnalysis;
+    tone?: ToneAnalysis;
+    audience?: AudienceAnalysis;
+    response?: ResponseAnalysis;
+  }): COSTARScore {
+    const { context, objective, style, tone, audience, response } = analysis;
 
     let overall: number;
     let rating: 'excellent' | 'good' | 'needs-improvement' | 'poor';
 
-    if (adaptiveness && reflectiveness) {
-      // Deep mode: weight all 5 components
+    if (tone && audience && response) {
+      // Deep mode: weight all 6 components
       overall =
-        conciseness.score * 0.2 +
-        logic.score * 0.2 +
-        explicitness.score * 0.3 +
-        adaptiveness.score * 0.15 +
-        reflectiveness.score * 0.15;
+        context.score * 0.2 +
+        objective.score * 0.2 +
+        style.score * 0.15 +
+        tone.score * 0.15 +
+        audience.score * 0.15 +
+        response.score * 0.15;
     } else {
-      // Fast mode: weight only C, L, E
-      overall = conciseness.score * 0.25 + logic.score * 0.25 + explicitness.score * 0.5;
+      // Fast mode: weight only C, O, S
+      overall = context.score * 0.35 + objective.score * 0.35 + style.score * 0.3;
     }
 
     // Determine rating
@@ -671,146 +666,187 @@ export class PromptOptimizer {
 
     return {
       overall: Math.round(overall),
-      conciseness: conciseness.score,
-      logic: logic.score,
-      explicitness: explicitness.score,
-      adaptiveness: adaptiveness?.score,
-      reflectiveness: reflectiveness?.score,
+      context: context.score,
+      objective: objective.score,
+      style: style.score,
+      tone: tone?.score,
+      audience: audience?.score,
+      response: response?.score,
       rating,
     };
   }
 
   /**
-   * Generate improved prompt using CLEAR framework insights
+   * Generate improved prompt using COSTAR framework insights
    */
-  private generateCLEARImprovedPrompt(
+  private generateCOSTARImprovedPrompt(
     original: string,
     analysis: {
-      conciseness: ConciseAnalysis;
-      logic: LogicAnalysis;
-      explicitness: ExplicitAnalysis;
-      adaptiveness?: AdaptiveAnalysis;
-      reflectiveness?: ReflectiveAnalysis;
+      context: ContextAnalysis;
+      objective: ObjectiveAnalysis;
+      style: StyleAnalysis;
+      tone?: ToneAnalysis;
+      audience?: AudienceAnalysis;
+      response?: ResponseAnalysis;
     }
   ): string {
     let improved = '';
 
-    // Apply Conciseness: Remove fluff
-    let cleaned = original;
-    const pleasantries = ['please', 'could you', 'would you', 'if possible', 'maybe', 'perhaps', 'kindly'];
-    pleasantries.forEach((word) => {
-      const regex = new RegExp(`\\b${word}\\b\\s*`, 'gi');
-      cleaned = cleaned.replace(regex, '');
-    });
-
-    // Apply Explicitness: Add missing elements
-    if (!analysis.explicitness.hasPersona) {
-      improved += '**Role:** Act as an expert developer.\n\n';
+    // Apply Context: Add background and constraints
+    improved += '## CONTEXT\n\n';
+    if (!analysis.context.hasBackground) {
+      improved += 'Background: ' + this.extractOrInferContext(original) + '\n\n';
+    } else {
+      improved += this.extractOrInferContext(original) + '\n\n';
     }
 
-    // Apply Logic: Structure the prompt
-    improved += '# Objective\n\n';
-    improved += this.extractOrInferObjective(cleaned) + '\n\n';
+    if (!analysis.context.hasConstraints && this.hasTechnicalDetails(original)) {
+      improved += 'Constraints: ' + this.extractOrInferTechnical(original) + '\n\n';
+    }
 
+    // Apply Objective: Add clear goal
+    improved += '## OBJECTIVE\n\n';
+    improved += this.extractOrInferObjective(original) + '\n\n';
+
+    // Apply Style: Add format and structure
+    improved += '## STYLE\n\n';
+    if (!analysis.style.formatSpecified) {
+      improved += 'Format: Provide response as structured, well-organized output\n';
+    }
+    if (!analysis.style.structureDefined) {
+      improved += 'Structure: Organize with clear sections and headings\n';
+    }
+    improved += '\n';
+
+    // Apply Tone (Deep mode only)
+    if (analysis.tone) {
+      improved += '## TONE\n\n';
+      if (!analysis.tone.toneSpecified) {
+        improved += 'Use a professional, technical tone appropriate for developers\n\n';
+      } else {
+        improved += this.extractToneGuidance(original) + '\n\n';
+      }
+    }
+
+    // Apply Audience (Deep mode only)
+    if (analysis.audience) {
+      improved += '## AUDIENCE\n\n';
+      if (!analysis.audience.audienceSpecified) {
+        improved +=
+          'Target audience: Senior developers with expertise in the relevant technology stack\n\n';
+      } else {
+        improved += this.extractAudienceDefinition(original) + '\n\n';
+      }
+    }
+
+    // Apply Response (Deep mode only)
+    if (analysis.response) {
+      improved += '## RESPONSE\n\n';
+      improved += 'Expected deliverables:\n';
+      if (!analysis.response.deliverablesSpecified) {
+        improved += '- Complete implementation\n';
+        improved += '- Documentation\n';
+        improved += '- Test coverage\n\n';
+      } else {
+        improved += this.extractDeliverables(original) + '\n\n';
+      }
+    }
+
+    improved += '---\n\n';
     improved += '# Requirements\n\n';
-    improved += this.extractOrInferRequirements(cleaned) + '\n\n';
-
-    improved += '# Technical Constraints\n\n';
-    improved += this.extractOrInferTechnical(cleaned) + '\n\n';
-
-    improved += '# Expected Output\n\n';
-    improved += this.extractOrInferOutput(cleaned) + '\n\n';
-
-    // Apply Explicitness: Add format specification
-    if (!analysis.explicitness.hasOutputFormat) {
-      improved += '**Format:** Provide response as a structured, well-organized output.\n\n';
-    }
-
-    improved += '# Success Criteria\n\n';
-    improved += this.extractOrInferSuccess(cleaned) + '\n';
+    improved += this.extractOrInferRequirements(original);
 
     return improved.trim();
   }
 
   /**
-   * Generate CLEAR-labeled changes summary
+   * Generate COSTAR-labeled changes summary
    */
-  private generateCLEARChangesSummary(
+  private generateCOSTARChangesSummary(
     original: string,
-    improved: string,
+    _improved: string,
     analysis: {
-      conciseness: ConciseAnalysis;
-      logic: LogicAnalysis;
-      explicitness: ExplicitAnalysis;
-      adaptiveness?: AdaptiveAnalysis;
-      reflectiveness?: ReflectiveAnalysis;
+      context: ContextAnalysis;
+      objective: ObjectiveAnalysis;
+      style: StyleAnalysis;
+      tone?: ToneAnalysis;
+      audience?: AudienceAnalysis;
+      response?: ResponseAnalysis;
     }
-  ): Array<{ component: 'C' | 'L' | 'E' | 'A' | 'R'; change: string }> {
-    const changes: Array<{ component: 'C' | 'L' | 'E' | 'A' | 'R'; change: string }> = [];
+  ): Array<{ component: 'C' | 'O' | 'S' | 'T' | 'A' | 'R'; change: string }> {
+    const changes: Array<{ component: 'C' | 'O' | 'S' | 'T' | 'A' | 'R'; change: string }> = [];
 
-    // Conciseness changes
-    if (analysis.conciseness.pleasantriesCount > 0) {
+    // Context changes
+    if (!analysis.context.hasBackground) {
       changes.push({
         component: 'C',
-        change: `Removed ${analysis.conciseness.pleasantriesCount} unnecessary pleasantries`,
+        change: 'Added background context and situational details',
       });
     }
-    if (analysis.conciseness.verbosityCount > 0) {
+    if (!analysis.context.hasConstraints) {
       changes.push({
         component: 'C',
-        change: `Eliminated ${analysis.conciseness.verbosityCount} verbose phrases`,
+        change: 'Specified constraints and requirements',
       });
     }
 
-    // Logic changes
-    if (!analysis.logic.hasCoherentFlow) {
+    // Objective changes
+    if (!analysis.objective.goalClarity) {
       changes.push({
-        component: 'L',
-        change: 'Restructured for logical flow: Context → Requirements → Constraints → Output',
+        component: 'O',
+        change: 'Clarified objective with clear goal statement',
+      });
+    }
+    if (!analysis.objective.measurable) {
+      changes.push({
+        component: 'O',
+        change: 'Made objective measurable with success criteria',
       });
     }
 
-    // Explicitness changes
-    if (!analysis.explicitness.hasPersona) {
+    // Style changes
+    if (!analysis.style.formatSpecified) {
       changes.push({
-        component: 'E',
-        change: 'Added explicit persona/role specification',
+        component: 'S',
+        change: 'Specified output format and presentation style',
       });
     }
-    if (!analysis.explicitness.hasOutputFormat) {
+    if (!analysis.style.structureDefined) {
       changes.push({
-        component: 'E',
-        change: 'Defined output format and structure',
-      });
-    }
-    if (!analysis.explicitness.hasSuccessCriteria && !this.hasSuccessCriteria(original)) {
-      changes.push({
-        component: 'E',
-        change: 'Added measurable success criteria',
+        component: 'S',
+        change: 'Defined structure and organization approach',
       });
     }
 
-    // Adaptive changes (deep mode only)
-    if (analysis.adaptiveness && analysis.adaptiveness.alternativePhrasings.length > 0) {
+    // Tone changes (deep mode only)
+    if (analysis.tone && !analysis.tone.toneSpecified) {
+      changes.push({
+        component: 'T',
+        change: 'Added tone guidance for appropriate communication style',
+      });
+    }
+
+    // Audience changes (deep mode only)
+    if (analysis.audience && !analysis.audience.audienceSpecified) {
       changes.push({
         component: 'A',
-        change: `Generated ${analysis.adaptiveness.alternativePhrasings.length} alternative approaches (see Adaptive Variations)`,
+        change: 'Defined target audience and skill level',
       });
     }
 
-    // Reflective changes (deep mode only)
-    if (analysis.reflectiveness) {
+    // Response changes (deep mode only)
+    if (analysis.response && !analysis.response.outputFormatClear) {
       changes.push({
         component: 'R',
-        change: `Created validation checklist with ${analysis.reflectiveness.edgeCases.length} edge cases (see Reflection Checklist)`,
+        change: 'Specified expected deliverables and response format',
       });
     }
 
     // Fallback if no changes detected
     if (changes.length === 0) {
       changes.push({
-        component: 'E',
-        change: 'Structured the prompt with clear sections',
+        component: 'O',
+        change: 'Structured the prompt with COSTAR framework sections',
       });
     }
 
@@ -818,45 +854,48 @@ export class PromptOptimizer {
   }
 
   /**
-   * Map CLEAR result to legacy PromptAnalysis format for backward compatibility
+   * Map COSTAR result to legacy PromptAnalysis format for backward compatibility
    */
-  mapCLEARToLegacy(clearResult: CLEARResult): PromptAnalysis {
+  mapCOSTARToLegacy(costarResult: COSTARResult): PromptAnalysis {
     return {
-      gaps: clearResult.explicitness.issues,
-      ambiguities: clearResult.conciseness.issues,
-      strengths: this.extractCLEARStrengths(clearResult),
+      gaps: costarResult.context.issues.concat(costarResult.objective.issues),
+      ambiguities: costarResult.style.issues,
+      strengths: this.extractCOSTARStrengths(costarResult),
       suggestions: [
-        ...clearResult.conciseness.suggestions,
-        ...clearResult.logic.suggestions,
-        ...clearResult.explicitness.suggestions,
+        ...costarResult.context.suggestions,
+        ...costarResult.objective.suggestions,
+        ...costarResult.style.suggestions,
       ],
     };
   }
 
   /**
-   * Extract strengths from CLEAR analysis
+   * Extract strengths from COSTAR analysis
    */
-  private extractCLEARStrengths(clearResult: CLEARResult): string[] {
+  private extractCOSTARStrengths(costarResult: COSTARResult): string[] {
     const strengths: string[] = [];
 
-    if (clearResult.conciseness.score >= 80) {
-      strengths.push('[C] Concise and focused language');
+    if (costarResult.context.score >= 80) {
+      strengths.push('[C] Rich context with background and constraints');
     }
-    if (clearResult.logic.score >= 80) {
-      strengths.push('[L] Well-structured logical flow');
+    if (costarResult.objective.score >= 80) {
+      strengths.push('[O] Clear, measurable objective');
     }
-    if (clearResult.explicitness.score >= 80) {
-      strengths.push('[E] Clear and explicit specifications');
+    if (costarResult.style.score >= 80) {
+      strengths.push('[S] Well-defined format and structure');
     }
-    if (clearResult.adaptiveness && clearResult.adaptiveness.score >= 80) {
-      strengths.push('[A] Flexible and adaptable approach');
+    if (costarResult.tone && costarResult.tone.score >= 80) {
+      strengths.push('[T] Appropriate tone and voice specified');
     }
-    if (clearResult.reflectiveness && clearResult.reflectiveness.score >= 80) {
-      strengths.push('[R] Strong validation and reflection criteria');
+    if (costarResult.audience && costarResult.audience.score >= 80) {
+      strengths.push('[A] Clear audience definition and skill level');
+    }
+    if (costarResult.response && costarResult.response.score >= 80) {
+      strengths.push('[R] Clear deliverables and response format');
     }
 
     if (strengths.length === 0) {
-      strengths.push('Prompt has been structured for improvement');
+      strengths.push('Prompt has been structured with COSTAR framework');
     }
 
     return strengths;
@@ -977,7 +1016,7 @@ export class PromptOptimizer {
   }
 
   /**
-   * Generate improved prompt with structure
+   * Generate improved prompt with structure (legacy method)
    */
   private generateImprovedPrompt(original: string, _analysis: PromptAnalysis): string {
     let improved = '# Objective\n\n';
@@ -1000,7 +1039,9 @@ export class PromptOptimizer {
 
   // Helper methods for analysis
   private hasContext(prompt: string): boolean {
-    return /\b(background|context|currently|existing|problem|issue|because)\b/i.test(prompt);
+    return /\b(background|context|currently|existing|problem|issue|because|given|situation)\b/i.test(
+      prompt
+    );
   }
 
   private hasSuccessCriteria(prompt: string): boolean {
@@ -1008,31 +1049,71 @@ export class PromptOptimizer {
   }
 
   private hasTechnicalDetails(prompt: string): boolean {
-    const techTerms = /\b(react|vue|angular|node|python|java|typescript|api|database|sql|nosql|aws|docker|kubernetes)\b/i;
+    const techTerms =
+      /\b(react|vue|angular|node|python|java|typescript|api|database|sql|nosql|aws|docker|kubernetes)\b/i;
     return techTerms.test(prompt) || /\b(integrate|performance|scale|security)\b/i.test(prompt);
   }
 
   private hasUserNeeds(prompt: string): boolean {
-    return /\b(user|customer|client|team|developer|admin|visitor)\b/i.test(prompt);
+    return /\b(user|customer|client|team|developer|admin|visitor|audience)\b/i.test(prompt);
   }
 
   private hasExpectedOutput(prompt: string): boolean {
-    return /\b(output|result|deliverable|should|look like|include|contain)\b/i.test(prompt);
+    return /\b(output|result|deliverable|should|look like|include|contain|provide|return)\b/i.test(
+      prompt
+    );
+  }
+
+  private hasUnrealisticScope(prompt: string): boolean {
+    // Check for overly broad goals
+    const tooBroad = /^(build an? app|create a system|make a platform|develop everything)$/i.test(
+      prompt.trim()
+    );
+    return tooBroad || (prompt.length < 30 && /\b(app|system|platform)\b/i.test(prompt));
+  }
+
+  private extractOrInferContext(prompt: string): string {
+    // Extract context clues
+    const contextMatch = prompt.match(
+      /(background|context|currently|given|situation):\s*([^\n]+)/i
+    );
+    if (contextMatch) {
+      return contextMatch[2];
+    }
+
+    // Infer from technical stack mentions
+    if (this.hasTechnicalDetails(prompt)) {
+      return `Working in a development environment with ${this.extractOrInferTechnical(prompt)}`;
+    }
+
+    return 'Development project requiring implementation of new functionality';
   }
 
   private extractOrInferObjective(prompt: string): string {
     // Try to find action verbs at the start
-    const actionMatch = prompt.match(/^(create|build|develop|implement|add|update|fix|refactor|design)\s+(.+)/i);
+    const actionMatch = prompt.match(
+      /^(create|build|develop|implement|add|update|fix|refactor|design|generate)\s+(.+)/i
+    );
     if (actionMatch) {
       return `${actionMatch[1]} ${actionMatch[2]}`;
     }
+
+    // Look for explicit objective statements
+    const objectiveMatch = prompt.match(/(objective|goal|purpose):\s*([^\n]+)/i);
+    if (objectiveMatch) {
+      return objectiveMatch[2];
+    }
+
     return prompt.split('\n')[0] || prompt.substring(0, 100);
   }
 
   private extractOrInferRequirements(prompt: string): string {
     const lines = prompt.split('\n').filter((line) => line.trim());
     if (lines.length > 1) {
-      return lines.slice(1).map((line) => `- ${line}`).join('\n');
+      return lines
+        .slice(1)
+        .map((line) => `- ${line}`)
+        .join('\n');
     }
     return '- ' + prompt + '\n- [Add specific requirements based on objective]';
   }
@@ -1066,7 +1147,33 @@ export class PromptOptimizer {
     return '- Implementation matches requirements\n- All edge cases handled\n- Code is tested and documented\n- [Add specific success metrics]';
   }
 
-  // New helper methods for mode support
+  private extractToneGuidance(prompt: string): string {
+    if (/professional/i.test(prompt)) return 'Professional tone';
+    if (/casual/i.test(prompt)) return 'Casual, friendly tone';
+    if (/technical/i.test(prompt)) return 'Technical, precise tone';
+    return 'Professional, clear tone';
+  }
+
+  private extractAudienceDefinition(prompt: string): string {
+    if (/beginner/i.test(prompt))
+      return 'Target audience: Beginners with basic programming knowledge';
+    if (/senior|expert/i.test(prompt))
+      return 'Target audience: Senior developers with deep expertise';
+    return 'Target audience: Intermediate to advanced developers';
+  }
+
+  private extractDeliverables(prompt: string): string {
+    const deliverables: string[] = [];
+
+    if (/code/i.test(prompt)) deliverables.push('- Complete code implementation');
+    if (/documentation|docs/i.test(prompt)) deliverables.push('- Documentation');
+    if (/test/i.test(prompt)) deliverables.push('- Test coverage');
+    if (/example/i.test(prompt)) deliverables.push('- Usage examples');
+
+    return deliverables.length > 0 ? deliverables.join('\n') : '- [Specify deliverables]';
+  }
+
+  // Methods for deep mode support
 
   /**
    * Count missing critical elements
@@ -1084,28 +1191,11 @@ export class PromptOptimizer {
   }
 
   /**
-   * Check for vague scope words without sufficient context
-   */
-  private hasVagueScopeWithoutContext(prompt: string): boolean {
-    const vagueScopeWords = /\b(app|system|repository|project|platform|solution|tool|service)\b/i;
-
-    if (!vagueScopeWords.test(prompt)) {
-      return false;
-    }
-
-    // Check if there's sufficient context
-    const hasSpecificPurpose = /\b(for|to|that|which|enables|allows|helps)\b.{10,}/i.test(prompt);
-    const hasTechStack = this.hasTechnicalDetails(prompt);
-    const hasDetailedRequirements = prompt.length > 100;
-
-    return !(hasSpecificPurpose && (hasTechStack || hasDetailedRequirements));
-  }
-
-  /**
    * Check if prompt has a clear goal
    */
   private hasClearGoal(prompt: string): boolean {
-    const actionVerbs = /^(create|build|develop|implement|add|update|fix|refactor|design|make|write)\b/i;
+    const actionVerbs =
+      /^(create|build|develop|implement|add|update|fix|refactor|design|make|write)\b/i;
     return actionVerbs.test(prompt.trim()) || /objective|goal|purpose/i.test(prompt);
   }
 
@@ -1113,7 +1203,8 @@ export class PromptOptimizer {
    * Check if prompt uses actionable language
    */
   private hasActionableLanguage(prompt: string): boolean {
-    const actionWords = /\b(create|build|implement|add|update|remove|fix|test|deploy|configure|setup)\b/i;
+    const actionWords =
+      /\b(create|build|implement|add|update|remove|fix|test|deploy|configure|setup)\b/i;
     return actionWords.test(prompt);
   }
 
@@ -1121,17 +1212,13 @@ export class PromptOptimizer {
    * Check if prompt has reasonable scope
    */
   private hasReasonableScope(prompt: string): boolean {
-    // Too vague (unreasonably broad)
-    const tooVague = /^(build an app|create a system|make a platform)$/i.test(prompt.trim());
-
-    // Too specific (unreasonably narrow)
+    const tooVague = /^(build an? app|create a system|make a platform)$/i.test(prompt.trim());
     const tooSpecific = prompt.length > 1000;
-
     return !tooVague && !tooSpecific;
   }
 
   /**
-   * Generate changes summary
+   * Generate changes summary (legacy)
    */
   private generateChangesSummary(original: string, improved: string): ChangesSummary {
     const changes: string[] = [];
@@ -1227,19 +1314,22 @@ export class PromptOptimizer {
   /**
    * Suggest alternative prompt structures (deep mode)
    */
-  private suggestAlternativeStructures(_prompt: string): Array<{ structure: string; benefits: string }> {
+  private suggestAlternativeStructures(
+    _prompt: string
+  ): Array<{ structure: string; benefits: string }> {
     return [
       {
         structure: 'User Story Format: As a [user], I want [goal] so that [benefit]',
         benefits: 'Focuses on user needs and value delivery',
       },
       {
-        structure: 'Job Story Format: When [situation], I want to [motivation], so I can [expected outcome]',
+        structure:
+          'Job Story Format: When [situation], I want to [motivation], so I can [expected outcome]',
         benefits: 'Emphasizes context and outcomes over personas',
       },
       {
-        structure: 'Structured Sections: Objective, Requirements, Constraints, Success Criteria',
-        benefits: 'Provides clear organization and comprehensive coverage',
+        structure: 'COSTAR Format: Context, Objective, Style, Tone, Audience, Response',
+        benefits: 'Comprehensive framework covering all critical aspects',
       },
     ];
   }
@@ -1273,7 +1363,6 @@ export class PromptOptimizer {
    * Extract core requirement from prompt
    */
   private extractCoreRequirement(prompt: string): string {
-    // Remove action verbs and extract the core requirement
     const cleaned = prompt.replace(/^(create|build|develop|implement|add|update|fix)\s+/i, '');
     return cleaned.split('.')[0] || cleaned.substring(0, 100);
   }

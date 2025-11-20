@@ -36,7 +36,7 @@ export default class Prd extends Command {
       description: 'Path to custom question template',
     }),
     'skip-validation': Flags.boolean({
-      description: 'Skip CLEAR framework validation of generated PRD',
+      description: 'Skip COSTAR framework validation of generated PRD',
       default: false,
     }),
   };
@@ -45,15 +45,19 @@ export default class Prd extends Command {
     const { flags } = await this.parse(Prd);
 
     console.log(chalk.bold.cyan('\nPRD Generator\n'));
-    console.log(chalk.gray("Let's create a comprehensive Product Requirements Document through strategic questions.\n"));
+    console.log(
+      chalk.gray(
+        "Let's create a comprehensive Product Requirements Document through strategic questions.\n"
+      )
+    );
 
     try {
       // Initialize QuestionEngine
       const engine = new QuestionEngine();
 
       // Determine template path
-      const templatePath = flags.template ||
-        path.join(__dirname, '../../templates/prd-questions.md');
+      const templatePath =
+        flags.template || path.join(__dirname, '../../templates/prd-questions.md');
 
       // Load question flow
       console.log(chalk.dim('Loading questions...\n'));
@@ -177,17 +181,20 @@ export default class Prd extends Command {
       console.log(chalk.cyan(`  ${outputPath}`));
       console.log();
       console.log(chalk.bold('Generated files:'));
-      console.log(chalk.gray(`  • full-prd.md`) + chalk.dim(' - Comprehensive PRD for team alignment'));
+      console.log(
+        chalk.gray(`  • full-prd.md`) + chalk.dim(' - Comprehensive PRD for team alignment')
+      );
       console.log(chalk.gray(`  • quick-prd.md`) + chalk.dim(' - Condensed prompt for AI agents'));
       console.log();
 
-      // CLEAR validation of quick-prd.md (unless skipped)
+      // COSTAR validation of quick-prd.md (unless skipped)
       if (!flags['skip-validation']) {
         await this.validatePrdWithClear(outputPath);
       }
 
-      console.log(chalk.gray('Tip: Use quick-prd.md as input for your AI agent to start development\n'));
-
+      console.log(
+        chalk.gray('Tip: Use quick-prd.md as input for your AI agent to start development\n')
+      );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       this.error(errorMessage);
@@ -266,7 +273,7 @@ export default class Prd extends Command {
   }
 
   /**
-   * Validate the generated quick-prd.md using CLEAR framework
+   * Validate the generated quick-prd.md using COSTAR framework
    * Focuses on C, L, E components for AI consumption quality
    */
   private async validatePrdWithClear(outputPath: string): Promise<void> {
@@ -279,10 +286,10 @@ export default class Prd extends Command {
       console.log(chalk.bold.cyan('📊 CLEAR Framework Validation\n'));
       console.log(chalk.gray('Analyzing quick-prd.md for AI consumption quality...\n'));
 
-      // Run CLEAR analysis (C, L, E only for PRDs)
+      // Run COSTAR analysis (C, O, S only for PRDs)
       const optimizer = new PromptOptimizer();
-      const clearResult = optimizer.applyCLEARFramework(prdContent, 'fast');
-      const clearScore = optimizer.calculateCLEARScore(clearResult);
+      const clearResult = optimizer.applyCOSTARFramework(prdContent, 'fast');
+      const clearScore = optimizer.calculateCOSTARScore(clearResult);
 
       const getScoreColor = (score: number) => {
         if (score >= 80) return chalk.green;
@@ -294,30 +301,30 @@ export default class Prd extends Command {
       console.log(chalk.bold('AI Consumption Quality Assessment:\n'));
 
       // Conciseness
-      const cColor = getScoreColor(clearScore.conciseness);
-      console.log(cColor.bold(`  [C] Concise: ${clearScore.conciseness.toFixed(0)}%`));
-      if (clearResult.conciseness.suggestions.length > 0) {
-        clearResult.conciseness.suggestions.slice(0, 2).forEach((s: string) => {
+      const cColor = getScoreColor(clearScore.context);
+      console.log(cColor.bold(`  [C] Context: ${clearScore.context.toFixed(0)}%`));
+      if (clearResult.context.suggestions.length > 0) {
+        clearResult.context.suggestions.slice(0, 2).forEach((s: string) => {
           console.log(cColor(`      ${s}`));
         });
       }
       console.log();
 
       // Logic
-      const lColor = getScoreColor(clearScore.logic);
-      console.log(lColor.bold(`  [L] Logical: ${clearScore.logic.toFixed(0)}%`));
-      if (clearResult.logic.suggestions.length > 0) {
-        clearResult.logic.suggestions.slice(0, 2).forEach((s: string) => {
+      const lColor = getScoreColor(clearScore.objective);
+      console.log(lColor.bold(`  [O] Objective: ${clearScore.objective.toFixed(0)}%`));
+      if (clearResult.objective.suggestions.length > 0) {
+        clearResult.objective.suggestions.slice(0, 2).forEach((s: string) => {
           console.log(lColor(`      ${s}`));
         });
       }
       console.log();
 
       // Explicitness
-      const eColor = getScoreColor(clearScore.explicitness);
-      console.log(eColor.bold(`  [E] Explicit: ${clearScore.explicitness.toFixed(0)}%`));
-      if (clearResult.explicitness.suggestions.length > 0) {
-        clearResult.explicitness.suggestions.slice(0, 2).forEach((s: string) => {
+      const eColor = getScoreColor(clearScore.style);
+      console.log(eColor.bold(`  [S] Style: ${clearScore.style.toFixed(0)}%`));
+      if (clearResult.style.suggestions.length > 0) {
+        clearResult.style.suggestions.slice(0, 2).forEach((s: string) => {
           console.log(eColor(`      ${s}`));
         });
       }
@@ -325,31 +332,35 @@ export default class Prd extends Command {
 
       // Overall
       const overallColor = getScoreColor(clearScore.overall);
-      console.log(overallColor.bold(`  Overall CLEAR Score: ${clearScore.overall.toFixed(0)}% (${clearScore.rating})\n`));
+      console.log(
+        overallColor.bold(
+          `  Overall CLEAR Score: ${clearScore.overall.toFixed(0)}% (${clearScore.rating})\n`
+        )
+      );
 
       // Recommendations
       if (clearScore.overall < 80) {
         console.log(chalk.yellow('💡 PRD Quality Tips:\n'));
 
-        if (clearScore.conciseness < 80 && clearResult.conciseness.suggestions.length > 0) {
+        if (clearScore.context < 80 && clearResult.context.suggestions.length > 0) {
           console.log(chalk.yellow('  [C] Consider making the PRD more concise:'));
-          clearResult.conciseness.suggestions.slice(0, 2).forEach((s: string) => {
+          clearResult.context.suggestions.slice(0, 2).forEach((s: string) => {
             console.log(chalk.yellow(`      • ${s}`));
           });
           console.log();
         }
 
-        if (clearScore.logic < 80 && clearResult.logic.suggestions.length > 0) {
+        if (clearScore.objective < 80 && clearResult.objective.suggestions.length > 0) {
           console.log(chalk.yellow('  [L] Improve logical structure:'));
-          clearResult.logic.suggestions.slice(0, 2).forEach((s: string) => {
+          clearResult.objective.suggestions.slice(0, 2).forEach((s: string) => {
             console.log(chalk.yellow(`      • ${s}`));
           });
           console.log();
         }
 
-        if (clearScore.explicitness < 80 && clearResult.explicitness.suggestions.length > 0) {
+        if (clearScore.style < 80 && clearResult.style.suggestions.length > 0) {
           console.log(chalk.yellow('  [E] Add more explicit details:'));
-          clearResult.explicitness.suggestions.slice(0, 2).forEach((s: string) => {
+          clearResult.style.suggestions.slice(0, 2).forEach((s: string) => {
             console.log(chalk.yellow(`      • ${s}`));
           });
           console.log();
@@ -357,10 +368,9 @@ export default class Prd extends Command {
       } else {
         console.log(chalk.green('✨ Excellent! This PRD is well-optimized for AI consumption.\n'));
       }
-
     } catch {
       // Don't fail the whole command if validation fails
-      console.log(chalk.yellow('⚠ Could not validate PRD with CLEAR framework\n'));
+      console.log(chalk.yellow('⚠ Could not validate PRD with COSTAR framework\n'));
     }
   }
 }

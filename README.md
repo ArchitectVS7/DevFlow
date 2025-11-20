@@ -1,14 +1,14 @@
-# Agentix
+# DevFlow
 
 **Intelligent workflow automation for modern development teams**
 
-Agentix transforms how you move from concept to code by automating the entire development lifecycle - from requirements gathering to task tracking to code quality assurance.
+DevFlow transforms how you move from concept to code by automating the entire development lifecycle - from requirements gathering to task tracking to code quality assurance.
 
 ---
 
-## What Does Agentix Do?
+## What Does DevFlow Do?
 
-Agentix automates three critical development workflows:
+DevFlow automates three critical development workflows:
 
 ### 1. Requirements → Documentation
 Turn rough ideas into structured Product Requirements Documents through AI-guided questioning.
@@ -24,9 +24,9 @@ Track implementation progress with automatic git commits and GitHub Project Boar
 ## Installation
 
 ```bash
-npm install -g agentix
+npm install -g devflow
 cd your-project
-agentix init
+devflow init
 ```
 
 ---
@@ -35,20 +35,20 @@ agentix init
 
 ```bash
 # Generate a PRD for a new feature
-agentix prd
+devflow prd
 > What feature are you building?
 > "User authentication system"
 
 # Break it into tasks
-agentix plan
-# Creates: .agentix/outputs/user-auth/tasks.md
+devflow plan
+# Creates: .devflow/outputs/user-auth/tasks.md
 # Also creates GitHub Issues (if configured)
 
 # Start implementing
-agentix implement
+devflow implement
 
 # Mark tasks complete as you work
-agentix task-complete phase-1-task-1
+devflow task-complete phase-1-task-1
 # ✓ Updates tasks.md
 # ✓ Creates git commit
 # ✓ Updates GitHub Issue
@@ -83,7 +83,7 @@ Built-in task completion tracking with automatic git commits. Never lose track o
 
 **Reference:**
 - [Commands](docs/commands.md) - All CLI commands explained
-- [Architecture](docs/architecture.md) - How Agentix works under the hood
+- [Architecture](docs/architecture.md) - How DevFlow works under the hood
 
 **[📚 Full Documentation](docs/README.md)**
 
@@ -91,7 +91,7 @@ Built-in task completion tracking with automatic git commits. Never lose track o
 
 ## Configuration Example
 
-`.agentix/config.json`:
+`.devflow/config.json`:
 ```json
 {
   "projectManagement": {
@@ -123,10 +123,10 @@ Built-in task completion tracking with automatic git commits. Never lose track o
 
 ---
 
-## Why Agentix?
+## Why DevFlow?
 
 **For Solo Developers:**
-Stop context-switching between planning tools, task trackers, and your IDE. Agentix keeps everything in your project directory.
+Stop context-switching between planning tools, task trackers, and your IDE. DevFlow keeps everything in your project directory.
 
 **For Teams:**
 Maintain a single source of truth from requirements to implementation. GitHub integration keeps everyone aligned.

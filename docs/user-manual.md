@@ -1,418 +1,168 @@
 # DevFlow User Manual
 
-Complete guide to using DevFlow for AI-powered development workflow automation.
+Welcome to **DevFlow**, your AI-native development companion.
 
-## Table of Contents
+DevFlow isn't just a CLI tool; it's a workflow engine designed to bridge the gap between your ideas and your AI coding assistants. Whether you're using ChatGPT, Claude, or GitHub Copilot, DevFlow helps you craft the perfect prompts, define clear requirements, and manage the implementation process with precision.
 
-1. [Installation](#installation)
-2. [Getting Started](#getting-started)
-3. [Core Workflow](#core-workflow)
-4. [Commands](#commands)
-5. [GitHub Integration](#github-integration)
-6. [Code Auditing](#code-auditing)
-7. [Best Practices](#best-practices)
+## The DevFlow Philosophy
 
----
+Modern AI development requires a shift in how we approach coding. It's no longer just about writing syntax; it's about **Context**, **Objective**, and **Style**. DevFlow is built around the **COSTAR framework**, an academically-validated method for prompt engineering that ensures your AI agents understand exactly what you need.
 
-## Installation
+- **Context (C)**: What is the background?
+- **Objective (O)**: What are we trying to achieve?
+- **Style (S)**: How should the output look?
+- **Tone (T)**: What is the voice?
+- **Audience (A)**: Who is this for?
+- **Response (R)**: What is the specific format?
 
-### Prerequisites
-
-- **Node.js** ≥ 18.0.0
-- **npm** or **yarn**
-- **Git** (for version control features)
-
-### Install DevFlow
-
-```bash
-npm install -g devflow
-```
-
-### Verify Installation
-
-```bash
-devflow --version
-```
+DevFlow integrates this framework directly into your terminal, acting as a quality gate for your thoughts before they reach the AI.
 
 ---
 
 ## Getting Started
 
-### Initialize Your Project
+### Installation
 
-Navigate to your project directory and run:
+Ensure you have Node.js (v18+) installed, then run:
+
+```bash
+npm install -g devflow
+```
+
+### Initialization
+
+Navigate to your project root and initialize DevFlow. This sets up your configuration and prepares the environment.
 
 ```bash
 devflow init
 ```
 
-This will:
-1. Create a `.devflow` directory for configuration and outputs
-2. Prompt you to select your AI coding assistant(s)
-3. Generate configuration files
-4. Set up slash commands for your selected AI tools
+You'll be prompted to select your preferred AI tools. DevFlow creates a `.devflow` directory to store your project configuration, prompts, and task data.
 
-### Project Structure
+---
 
-After initialization, you'll have:
+## Workflow 1: The Prompt Engineering Cycle
 
+Before you write a single line of code, you need a clear prompt. DevFlow provides powerful tools to optimize your instructions using the COSTAR framework.
+
+### Quick Optimization (`fast`)
+
+For everyday tasks, use the **Fast Mode**. It focuses on the core triad: **Context, Objective, and Style**.
+
+```bash
+devflow fast "create a login page"
 ```
-your-project/
-├── .devflow/
-│   ├── config.json           # Main configuration
-│   ├── outputs/              # Generated PRDs and prompts
-│   └── tasks/                # Task tracking data
-└── ... your project files
+
+DevFlow will analyze your raw input, score it against the framework, and generate a significantly improved version. It will tell you if you're missing context or if your objective is vague.
+
+### Deep Analysis (`deep`)
+
+For complex features or architectural decisions, use **Deep Mode**. This activates the full 6-point COSTAR framework, adding **Tone**, **Audience**, and **Response** analysis.
+
+```bash
+devflow deep "design a microservices architecture for a video platform"
+```
+
+This mode ensures your prompt is robust enough to generate production-grade results from advanced models like GPT-4 or Claude 3.5 Sonnet.
+
+### Summarizing Conversations (`summarize`)
+
+Often, requirements are buried in long chat logs. The `summarize` command ingests a session log and extracts structured requirements, converting them into a clean, COSTAR-optimized prompt.
+
+```bash
+devflow summarize --active
 ```
 
 ---
 
-## Core Workflow
+## Workflow 2: From Requirements to Plan
 
-DevFlow follows a structured workflow from idea to implementation:
+Once your prompt is ready, it's time to formalize it into a project plan.
 
-### 1. Generate a PRD
+### Generating a PRD (`prd`)
 
-Start by creating a Product Requirements Document:
+The Product Requirements Document (PRD) is the blueprint for your feature. DevFlow's `prd` command uses a Socratic questioning engine to interview you about your feature.
 
 ```bash
 devflow prd
 ```
 
-**Interactive Mode:**
-- Answer Socratic questions about your feature
-- DevFlow analyzes your responses
-- Generates a structured PRD in `.devflow/outputs/`
+It will ask about edge cases, tech stack constraints, and success metrics. The output is a comprehensive Markdown file. Crucially, DevFlow **validates your PRD** against the COSTAR framework to ensure it's "AI-ready."
 
-**Quick Mode:**
-```bash
-devflow prd --quick
-```
+*Tip: Use `devflow prd --quick` to skip the interview if you already have a clear vision.*
 
-### 2. Create Task Plan
+### Creating a Task Plan (`plan`)
 
-Break down your PRD into actionable tasks:
+With a PRD in hand, generate a step-by-step implementation plan.
 
 ```bash
 devflow plan
 ```
 
-This will:
-- Analyze your PRD
-- Generate a task breakdown organized by phases
-- Create a `tasks.md` file
-- (Optional) Create GitHub Issues if configured
+DevFlow parses your PRD and breaks it down into atomic, actionable tasks. If you have GitHub integration enabled, it will automatically create **GitHub Issues** for each task and link them to a Project Board.
 
-**Options:**
-```bash
-devflow plan --project my-feature    # Specify PRD project
-devflow plan --session abc123        # Use specific session
-```
+---
 
-### 3. Implement Tasks
+## Workflow 3: Implementation & Audit
 
-Start the implementation workflow:
+Now, you build. DevFlow keeps you focused and ensures quality.
+
+### Implementation Mode (`implement`)
+
+Enter the flow state. This command displays your current task list and tracks your progress.
 
 ```bash
 devflow implement
 ```
 
-This command:
-- Shows you the task breakdown
-- Guides you through implementation
-- Tracks progress
-- Optionally creates git commits
+### Completing Tasks (`task-complete`)
 
-**Commit Strategies:**
-- `per-task` - Commit after each task
-- `per-phase` - Commit after completing each phase
-- `per-5-tasks` - Commit every 5 tasks
-- `none` - No automatic commits
-
-### 4. Complete Tasks
-
-Mark individual tasks as done:
+When you finish a task, tell DevFlow.
 
 ```bash
 devflow task-complete phase-1-task-1
 ```
 
-This will:
-- Mark the task as complete in `tasks.md`
-- Update progress tracking
-- Create a git commit (if configured)
-- Update GitHub Issue status (if configured)
+This updates your local task list and, if connected, moves the corresponding GitHub Issue to "Done." It can even trigger a git commit automatically.
 
----
+### Code Auditing (`audit-check`)
 
-## Commands
+Never merge bad code. The audit command uses an LLM to review your changes for security flaws, anti-patterns, and missing documentation.
 
-### Core Commands
-
-#### `devflow init`
-Initialize DevFlow in your project.
-
-**Usage:**
 ```bash
-devflow init
+# Audit your current changes (staged + unstaged)
+devflow audit-check --diff
 ```
 
-#### `devflow prd`
-Generate a Product Requirements Document.
-
-**Usage:**
-```bash
-devflow prd [--quick] [--output <path>]
-```
-
-**Flags:**
-- `--quick` - Skip Socratic questioning, use quick mode
-- `--output <path>` - Custom output path
-
-#### `devflow plan`
-Generate task breakdown from PRD.
-
-**Usage:**
-```bash
-devflow plan [--project <name>] [--session <id>]
-```
-
-**Flags:**
-- `--project <name>` - Specify PRD project name
-- `--session <id>` - Use specific session
-- `--active-session` - Use active session
-
-#### `devflow implement`
-Start implementation workflow.
-
-**Usage:**
-```bash
-devflow implement [--project <name>]
-```
-
-#### `devflow task-complete`
-Mark a task as complete.
-
-**Usage:**
-```bash
-devflow task-complete <task-id>
-```
-
-**Example:**
-```bash
-devflow task-complete phase-1-task-1
-```
-
-### Utility Commands
-
-#### `devflow config`
-Manage configuration.
-
-**Usage:**
-```bash
-devflow config                    # View current config
-devflow config --reset            # Reset to defaults
-devflow config --agent <name>     # Change AI agent
-```
-
-#### `devflow list`
-List PRD projects.
-
-**Usage:**
-```bash
-devflow list
-```
-
-#### `devflow show`
-Show project details.
-
-**Usage:**
-```bash
-devflow show <project-name>
-```
-
-#### `devflow audit-check`
-Run code audit.
-
-**Usage:**
-```bash
-devflow audit-check [--diff]
-```
-
-**Flags:**
-- `--diff` - Audit only git diff (staged + unstaged changes)
+We recommend running this before every commit. You can also set up a GitHub Action to run this automatically on every pull request.
 
 ---
 
 ## GitHub Integration
 
-### Setup
+DevFlow is designed to work seamlessly with GitHub Projects. By configuring your `GITHUB_TOKEN` and project URL, you turn DevFlow into a headless project manager.
 
-1. **Create a GitHub Personal Access Token**
-   - Go to GitHub Settings → Developer settings → Personal access tokens
-   - Generate a new token with `repo` and `project` scopes
-   - Save the token securely
+- **Auto-Issue Creation**: `devflow plan` populates your board.
+- **Status Sync**: `devflow task-complete` moves cards across columns.
+- **Traceability**: Every local task is linked to a remote issue.
 
-2. **Configure DevFlow**
-
-Edit `.devflow/config.json`:
-
-```json
-{
-  "projectManagement": {
-    "type": "github",
-    "githubTokenEnvVar": "GITHUB_TOKEN",
-    "projectBoardUrl": "https://github.com/orgs/your-org/projects/1",
-    "columnsMap": {
-      "NEW": "Todo",
-      "IMPLEMENTING": "In Progress",
-      "COMPLETE": "Done"
-    }
-  }
-}
-```
-
-3. **Set Environment Variable**
-
-```bash
-export GITHUB_TOKEN=your_personal_access_token
-```
-
-### Usage
-
-Once configured, GitHub integration works automatically:
-
-- **`devflow plan`** creates GitHub Issues for each task
-- **`devflow task-complete`** updates Issue status and closes completed issues
-- Issues are linked to your local tasks via `.devflow-implement-config.json`
-
-### Column Mapping
-
-The `columnsMap` defines how DevFlow task states map to your Project Board columns:
-
-- `NEW` - Where new tasks are created
-- `IMPLEMENTING` - Where active tasks move (future feature)
-- `COMPLETE` - Where completed tasks move
+To set this up, edit your `.devflow/config.json` and provide your project board details.
 
 ---
 
-## Code Auditing
+## Summary of Commands
 
-### Setup
+| Command | Purpose |
+|---------|---------|
+| `init` | Initialize project configuration |
+| `fast` | Quick prompt optimization (C, O, S) |
+| `deep` | Deep prompt analysis (Full COSTAR) |
+| `summarize` | Convert chat logs to prompts |
+| `prd` | Generate requirements document |
+| `plan` | Break PRD into tasks & issues |
+| `implement` | Track implementation progress |
+| `task-complete` | Mark tasks done & sync GitHub |
+| `audit-check` | AI code review & security scan |
+| `config` | Manage settings |
 
-1. **Configure Audit Settings**
-
-Edit `.devflow/config.json`:
-
-```json
-{
-  "audit": {
-    "provider": "openai",
-    "apiKeyEnvVar": "OPENAI_API_KEY",
-    "model": "gpt-4o"
-  }
-}
-```
-
-2. **Set API Key**
-
-```bash
-export OPENAI_API_KEY=your_openai_api_key
-```
-
-### Manual Audit
-
-Run audit manually:
-
-```bash
-# Audit git diff
-devflow audit-check --diff
-
-# Audit entire project
-devflow audit-check
-```
-
-### Automated Audit (GitHub Actions)
-
-DevFlow includes a GitHub Actions workflow for automated auditing:
-
-**`.github/workflows/audit.yml`** runs on every push to main:
-- Builds your project
-- Runs `devflow audit-check`
-- Fails the build if issues are found
-
-The audit checks for:
-- Security vulnerabilities
-- Architectural anti-patterns
-- Missing documentation
-- Code quality issues
-
----
-
-## Best Practices
-
-### PRD Generation
-
-1. **Be Specific**: Provide detailed answers during PRD generation
-2. **Include Context**: Mention existing systems and constraints
-3. **Define Success**: Clearly state what "done" looks like
-
-### Task Planning
-
-1. **Review Generated Tasks**: Always review the task breakdown before implementing
-2. **Adjust Granularity**: Break down large tasks if needed
-3. **Use Sessions**: Leverage sessions for complex, multi-stage projects
-
-### Implementation
-
-1. **Follow the Plan**: Stick to the generated task order when possible
-2. **Commit Regularly**: Use appropriate commit strategy for your workflow
-3. **Track Progress**: Mark tasks complete as you finish them
-
-### GitHub Integration
-
-1. **Consistent Naming**: Use clear, descriptive project names
-2. **Column Mapping**: Ensure your Project Board columns match your workflow
-3. **Token Security**: Never commit your GitHub token to version control
-
-### Code Auditing
-
-1. **Run Before Push**: Use `--diff` flag to audit changes before committing
-2. **Address Issues**: Fix audit findings before merging
-3. **Automate**: Set up GitHub Actions for continuous auditing
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-**"No .devflow/config.json found"**
-- Run `devflow init` in your project directory
-
-**"GitHub token not found"**
-- Ensure your environment variable is set correctly
-- Check the `githubTokenEnvVar` value in config.json
-
-**"Could not determine GitHub repository"**
-- Ensure you're in a git repository
-- Check that `.git/config` contains a GitHub remote
-
-**"Audit failed: API error"**
-- Verify your API key is valid
-- Check your API quota/limits
-
-For more help, see the [Troubleshooting Guide](troubleshooting.md) or [open an issue](https://github.com/DevFlowDev/DevFlow/issues).
-
----
-
-## Next Steps
-
-- [Configuration Guide](configuration.md) - Detailed configuration options
-- [Command Reference](commands.md) - Complete command documentation
-- [GitHub Integration](github-integration.md) - Advanced GitHub features
-- [Architecture](architecture.md) - Technical deep dive
-
----
-
-[← Back to Documentation Index](README.md) | [Main README](../README.md)
+For a detailed reference of all flags and options, see the [Command Reference](commands.md).

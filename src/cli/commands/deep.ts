@@ -1,10 +1,16 @@
 import { Command, Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
-import { PromptOptimizer, CLEARResult, ImprovedPrompt, CLEARScore } from '../../core/prompt-optimizer.js';
+import {
+  PromptOptimizer,
+  COSTARResult,
+  ImprovedPrompt,
+  COSTARScore,
+} from '../../core/prompt-optimizer.js';
 import { PromptManager } from '../../core/prompt-manager.js';
 
 export default class Deep extends Command {
-  static description = 'Perform comprehensive deep analysis using full CLEAR framework (Concise, Logical, Explicit, Adaptive, Reflective)';
+  static description =
+    'Perform comprehensive deep analysis using full COSTAR framework (Context, Objective, Style, Adaptive, Reflective)';
 
   static examples = [
     '<%= config.bin %> <%= command.id %> "Create a login page"',
@@ -12,12 +18,12 @@ export default class Deep extends Command {
   ];
 
   static flags = {
-    'clear-only': Flags.boolean({
-      description: 'Show only CLEAR analysis without improved prompt',
+    'costar-only': Flags.boolean({
+      description: 'Show only COSTAR analysis without improved prompt',
       default: false,
     }),
     'framework-info': Flags.boolean({
-      description: 'Display CLEAR framework information',
+      description: 'Display COSTAR framework information',
       default: false,
     }),
   };
@@ -44,33 +50,37 @@ export default class Deep extends Command {
       return;
     }
 
-    console.log(chalk.bold.cyan('\n🔍 Performing deep analysis using full CLEAR framework...\n'));
+    console.log(chalk.bold.cyan('\n🔍 Performing deep analysis using full COSTAR framework...\n'));
 
     const optimizer = new PromptOptimizer();
 
-    // Get CLEAR analysis (deep mode - all 5 components)
-    const clearResult = optimizer.applyCLEARFramework(args.prompt, 'deep');
-    const clearScore = optimizer.calculateCLEARScore(clearResult);
+    // Get COSTAR analysis (deep mode - all 5 components)
+    const costarResult = optimizer.applyCOSTARFramework(args.prompt, 'deep');
+    const costarScore = optimizer.calculateCOSTARScore(costarResult);
 
     // Also get the full improvement result for backward compatibility
     const result = optimizer.improve(args.prompt, 'deep');
 
-    // Handle --clear-only flag
-    if (flags['clear-only']) {
-      this.displayCLEAROnlyAnalysis(clearResult, clearScore);
+    // Handle --costar-only flag
+    if (flags['costar-only']) {
+      this.displayCLEAROnlyAnalysis(costarResult, costarScore);
       return;
     }
 
-    this.displayOutput(result, clearResult, clearScore);
+    this.displayOutput(result, costarResult, costarScore);
 
     // Save prompt to file system
-    await this.savePrompt(clearResult.improvedPrompt, args.prompt, clearScore);
+    await this.savePrompt(costarResult.improvedPrompt, args.prompt, costarScore);
   }
 
-  private displayOutput(result: ImprovedPrompt, clearResult: CLEARResult, clearScore: CLEARScore): void {
-    console.log(chalk.bold.cyan('🎯 CLEAR Framework Deep Analysis\n'));
+  private displayOutput(
+    result: ImprovedPrompt,
+    costarResult: COSTARResult,
+    costarScore: COSTARScore
+  ): void {
+    console.log(chalk.bold.cyan('🎯 COSTAR Framework Deep Analysis\n'));
 
-    // Display CLEAR Assessment (all 5 components for deep mode)
+    // Display COSTAR Assessment (all 5 components for deep mode)
     console.log(chalk.bold('📊 Framework Assessment:\n'));
 
     const getScoreColor = (score: number) => {
@@ -79,132 +89,162 @@ export default class Deep extends Command {
       return chalk.red;
     };
 
-    // C, L, E (same as fast mode)
-    const cColor = getScoreColor(clearScore.conciseness);
-    console.log(cColor.bold(`  [C] Concise: ${clearScore.conciseness.toFixed(0)}%`));
-    if (clearResult.conciseness.suggestions.length > 0) {
-      clearResult.conciseness.suggestions.slice(0, 2).forEach((s: string) => console.log(cColor(`      ${s}`)));
+    // C, O, S (core components)
+    const cColor = getScoreColor(costarScore.context);
+    console.log(cColor.bold(`  [C] Context: ${costarScore.context.toFixed(0)}%`));
+    if (costarResult.context.suggestions.length > 0) {
+      costarResult.context.suggestions
+        .slice(0, 2)
+        .forEach((s: string) => console.log(cColor(`      ${s}`)));
     }
     console.log();
 
-    const lColor = getScoreColor(clearScore.logic);
-    console.log(lColor.bold(`  [L] Logical: ${clearScore.logic.toFixed(0)}%`));
-    if (clearResult.logic.suggestions.length > 0) {
-      clearResult.logic.suggestions.slice(0, 2).forEach((s: string) => console.log(lColor(`      ${s}`)));
+    const oColor = getScoreColor(costarScore.objective);
+    console.log(oColor.bold(`  [O] Objective: ${costarScore.objective.toFixed(0)}%`));
+    if (costarResult.objective.suggestions.length > 0) {
+      costarResult.objective.suggestions
+        .slice(0, 2)
+        .forEach((s: string) => console.log(oColor(`      ${s}`)));
     }
     console.log();
 
-    const eColor = getScoreColor(clearScore.explicitness);
-    console.log(eColor.bold(`  [E] Explicit: ${clearScore.explicitness.toFixed(0)}%`));
-    if (clearResult.explicitness.suggestions.length > 0) {
-      clearResult.explicitness.suggestions.slice(0, 2).forEach((s: string) => console.log(eColor(`      ${s}`)));
+    const sColor = getScoreColor(costarScore.style);
+    console.log(sColor.bold(`  [S] Style: ${costarScore.style.toFixed(0)}%`));
+    if (costarResult.style.suggestions.length > 0) {
+      costarResult.style.suggestions
+        .slice(0, 2)
+        .forEach((s: string) => console.log(sColor(`      ${s}`)));
     }
     console.log();
 
-    // A, R (deep mode only)
-    if (clearResult.adaptiveness) {
-      const aColor = getScoreColor(clearScore.adaptiveness || 0);
-      console.log(aColor.bold(`  [A] Adaptive: ${(clearScore.adaptiveness || 0).toFixed(0)}%`));
-      console.log(aColor(`      See "Adaptive Variations" section below`));
+    // T, A, R (deep mode only)
+    if (costarResult.tone) {
+      const tColor = getScoreColor(costarScore.tone || 0);
+      console.log(tColor.bold(`  [T] Tone: ${(costarScore.tone || 0).toFixed(0)}%`));
+      console.log(tColor(`      See "Tone Analysis" section below`));
       console.log();
     }
 
-    if (clearResult.reflectiveness) {
-      const rColor = getScoreColor(clearScore.reflectiveness || 0);
-      console.log(rColor.bold(`  [R] Reflective: ${(clearScore.reflectiveness || 0).toFixed(0)}%`));
-      console.log(rColor(`      See "Reflection Checklist" section below`));
+    if (costarResult.audience) {
+      const aColor = getScoreColor(costarScore.audience || 0);
+      console.log(aColor.bold(`  [A] Audience: ${(costarScore.audience || 0).toFixed(0)}%`));
+      console.log(aColor(`      See "Audience Analysis" section below`));
+      console.log();
+    }
+
+    if (costarResult.response) {
+      const rColor = getScoreColor(costarScore.response || 0);
+      console.log(rColor.bold(`  [R] Response: ${(costarScore.response || 0).toFixed(0)}%`));
+      console.log(rColor(`      See "Response Format" section below`));
       console.log();
     }
 
     // Overall
-    const overallColor = getScoreColor(clearScore.overall);
-    console.log(overallColor.bold(`  Overall CLEAR Score: ${clearScore.overall.toFixed(0)}% (${clearScore.rating})\n`));
+    const overallColor = getScoreColor(costarScore.overall);
+    console.log(
+      overallColor.bold(
+        `  Overall COSTAR Score: ${costarScore.overall.toFixed(0)}% (${costarScore.rating})\n`
+      )
+    );
 
     // Display improved prompt
-    console.log(chalk.bold.cyan('✨ CLEAR-Optimized Prompt:\n'));
+    console.log(chalk.bold.cyan('✨ COSTAR-Optimized Prompt:\n'));
     console.log(chalk.dim('─'.repeat(80)));
-    console.log(clearResult.improvedPrompt);
+    console.log(costarResult.improvedPrompt);
     console.log(chalk.dim('─'.repeat(80)));
     console.log();
 
     // Changes made
-    if (clearResult.changesSummary.length > 0) {
-      console.log(chalk.bold.magenta('📝 CLEAR Changes Made:\n'));
-      clearResult.changesSummary.forEach((change: { component: string; change: string }) => {
+    if (costarResult.changesSummary.length > 0) {
+      console.log(chalk.bold.magenta('📝 COSTAR Changes Made:\n'));
+      costarResult.changesSummary.forEach((change: { component: string; change: string }) => {
         console.log(chalk.magenta(`  [${change.component}] ${change.change}`));
       });
       console.log();
     }
 
-    // Adaptive Variations (A)
-    if (clearResult.adaptiveness) {
-      console.log(chalk.bold.cyan('🔄 Adaptive Variations:\n'));
+    // Tone Analysis (T)
+    if (costarResult.tone) {
+      console.log(chalk.bold.cyan('🎭 Tone Analysis:\n'));
 
-      if (clearResult.adaptiveness.alternativePhrasings.length > 0) {
-        console.log(chalk.cyan('  Alternative Phrasings:'));
-        clearResult.adaptiveness.alternativePhrasings.forEach((p: string, i: number) => {
-          console.log(chalk.cyan(`    ${i + 1}. ${p}`));
+      console.log(
+        chalk.cyan(`  Tone Specified: ${costarResult.tone.toneSpecified ? 'Yes' : 'No'}`)
+      );
+      console.log(
+        chalk.cyan(`  Voice Consistency: ${costarResult.tone.voiceConsistency ? 'Yes' : 'No'}`)
+      );
+      console.log(chalk.cyan(`  Formality: ${costarResult.tone.formalityLevel}`));
+
+      if (costarResult.tone.suggestions.length > 0) {
+        console.log(chalk.cyan('  Suggestions:'));
+        costarResult.tone.suggestions.forEach((s: string) => {
+          console.log(chalk.cyan(`    • ${s}`));
         });
-        console.log();
       }
-
-      if (clearResult.adaptiveness.alternativeStructures.length > 0) {
-        console.log(chalk.cyan('  Alternative Structures:'));
-        clearResult.adaptiveness.alternativeStructures.forEach((alt: { name: string; structure: string; benefits: string }, i: number) => {
-          console.log(chalk.cyan(`    ${i + 1}. ${alt.name}`));
-          console.log(chalk.gray(`       ${alt.benefits}`));
-        });
-        console.log();
-      }
-
-      if (clearResult.adaptiveness.temperatureRecommendation !== undefined) {
-        console.log(chalk.cyan(`  Recommended Temperature: ${clearResult.adaptiveness.temperatureRecommendation}`));
-        console.log();
-      }
+      console.log();
     }
 
-    // Reflection Checklist (R)
-    if (clearResult.reflectiveness) {
-      console.log(chalk.bold.yellow('🤔 Reflection Checklist:\n'));
+    // Audience Analysis (A)
+    if (costarResult.audience) {
+      console.log(chalk.bold.magenta('👥 Audience Analysis:\n'));
 
-      if (clearResult.reflectiveness.validationChecklist.length > 0) {
-        console.log(chalk.yellow('  Validation Steps:'));
-        clearResult.reflectiveness.validationChecklist.forEach((item: string) => {
-          console.log(chalk.yellow(`    ☐ ${item}`));
-        });
-        console.log();
-      }
+      console.log(
+        chalk.magenta(
+          `  Audience Specified: ${costarResult.audience.audienceSpecified ? 'Yes' : 'No'}`
+        )
+      );
+      console.log(
+        chalk.magenta(
+          `  Skill Level Defined: ${costarResult.audience.skillLevelDefined ? 'Yes' : 'No'}`
+        )
+      );
+      console.log(
+        chalk.magenta(`  Needs Addressed: ${costarResult.audience.needsAddressed ? 'Yes' : 'No'}`)
+      );
 
-      if (clearResult.reflectiveness.edgeCases.length > 0) {
-        console.log(chalk.yellow('  Edge Cases to Consider:'));
-        clearResult.reflectiveness.edgeCases.forEach((ec: string) => {
-          console.log(chalk.yellow(`    • ${ec}`));
+      if (costarResult.audience.suggestions.length > 0) {
+        console.log(chalk.magenta('  Suggestions:'));
+        costarResult.audience.suggestions.forEach((s: string) => {
+          console.log(chalk.magenta(`    • ${s}`));
         });
-        console.log();
       }
-
-      if (clearResult.reflectiveness.potentialIssues.length > 0) {
-        console.log(chalk.yellow('  What Could Go Wrong:'));
-        clearResult.reflectiveness.potentialIssues.forEach((issue: string) => {
-          console.log(chalk.yellow(`    • ${issue}`));
-        });
-        console.log();
-      }
-
-      if (clearResult.reflectiveness.factCheckingSteps.length > 0) {
-        console.log(chalk.yellow('  Fact-Checking Steps:'));
-        clearResult.reflectiveness.factCheckingSteps.forEach((step: string) => {
-          console.log(chalk.yellow(`    • ${step}`));
-        });
-        console.log();
-      }
+      console.log();
     }
 
-    console.log(chalk.gray('💡 Full CLEAR framework analysis complete!\n'));
+    // Response Format (R)
+    if (costarResult.response) {
+      console.log(chalk.bold.yellow('📋 Response Format:\n'));
+
+      console.log(
+        chalk.yellow(
+          `  Output Format: ${costarResult.response.outputFormatClear ? 'Clear' : 'Unclear'}`
+        )
+      );
+      console.log(
+        chalk.yellow(
+          `  Deliverables: ${costarResult.response.deliverablesSpecified ? 'Specified' : 'Not specified'}`
+        )
+      );
+      console.log(
+        chalk.yellow(
+          `  Examples: ${costarResult.response.examplesProvided ? 'Provided' : 'Not provided'}`
+        )
+      );
+
+      if (costarResult.response.suggestions.length > 0) {
+        console.log(chalk.yellow('  Suggestions:'));
+        costarResult.response.suggestions.forEach((s: string) => {
+          console.log(chalk.yellow(`    • ${s}`));
+        });
+      }
+      console.log();
+    }
+
+    console.log(chalk.gray('💡 Full COSTAR framework analysis complete (C, O, S, T, A, R)!\n'));
   }
 
-  private displayCLEAROnlyAnalysis(clearResult: CLEARResult, clearScore: CLEARScore): void {
-    console.log(chalk.bold.cyan('🎯 CLEAR Framework Analysis Only (Deep Mode)\n'));
+  private displayCLEAROnlyAnalysis(costarResult: COSTARResult, costarScore: COSTARScore): void {
+    console.log(chalk.bold.cyan('🎯 COSTAR Framework Analysis Only (Deep Mode)\n'));
 
     const getScoreColor = (score: number) => {
       if (score >= 80) return chalk.green;
@@ -212,91 +252,146 @@ export default class Deep extends Command {
       return chalk.red;
     };
 
-    console.log(chalk.bold('📊 Complete CLEAR Assessment:\n'));
+    console.log(chalk.bold('📊 Complete COSTAR Assessment:\n'));
 
-    // Conciseness
-    const cColor = getScoreColor(clearScore.conciseness);
-    console.log(cColor.bold(`  [C] Conciseness: ${clearScore.conciseness.toFixed(0)}%`));
-    console.log(cColor(`      Verbosity: ${clearResult.conciseness.verbosityCount} instances`));
-    console.log(cColor(`      Pleasantries: ${clearResult.conciseness.pleasantriesCount} instances`));
-    console.log(cColor(`      Signal-to-noise: ${clearResult.conciseness.signalToNoiseRatio.toFixed(2)}`));
-    clearResult.conciseness.issues.forEach((issue: string) => {
+    // Context
+    const cColor = getScoreColor(costarScore.context);
+    console.log(cColor.bold(`  [C] Context: ${costarScore.context.toFixed(0)}%`));
+    console.log(cColor(`      Background: ${costarResult.context.hasBackground ? 'Yes' : 'No'}`));
+    console.log(cColor(`      Constraints: ${costarResult.context.hasConstraints ? 'Yes' : 'No'}`));
+    console.log(cColor(`      Situation Clarity: ${costarResult.context.situationClarity}%`));
+    costarResult.context.issues.forEach((issue: string) => {
       console.log(cColor(`      • ${issue}`));
     });
     console.log();
 
-    // Logic
-    const lColor = getScoreColor(clearScore.logic);
-    console.log(lColor.bold(`  [L] Logic: ${clearScore.logic.toFixed(0)}%`));
-    console.log(lColor(`      Coherent Flow: ${clearResult.logic.hasCoherentFlow ? 'Yes' : 'No'}`));
-    clearResult.logic.issues.forEach((issue: string) => {
-      console.log(lColor(`      • ${issue}`));
+    // Objective
+    const oColor = getScoreColor(costarScore.objective);
+    console.log(oColor.bold(`  [O] Objective: ${costarScore.objective.toFixed(0)}%`));
+    console.log(oColor(`      Goal Clarity: ${costarResult.objective.goalClarity ? 'Yes' : 'No'}`));
+    console.log(oColor(`      Measurable: ${costarResult.objective.measurable ? 'Yes' : 'No'}`));
+    console.log(oColor(`      Achievable: ${costarResult.objective.achievable ? 'Yes' : 'No'}`));
+    costarResult.objective.issues.forEach((issue: string) => {
+      console.log(oColor(`      • ${issue}`));
     });
     console.log();
 
-    // Explicitness
-    const eColor = getScoreColor(clearScore.explicitness);
-    console.log(eColor.bold(`  [E] Explicitness: ${clearScore.explicitness.toFixed(0)}%`));
-    console.log(eColor(`      Persona: ${clearResult.explicitness.hasPersona ? '✓' : '✗'}`));
-    console.log(eColor(`      Output Format: ${clearResult.explicitness.hasOutputFormat ? '✓' : '✗'}`));
-    console.log(eColor(`      Tone/Style: ${clearResult.explicitness.hasToneStyle ? '✓' : '✗'}`));
-    console.log(eColor(`      Success Criteria: ${clearResult.explicitness.hasSuccessCriteria ? '✓' : '✗'}`));
-    console.log(eColor(`      Examples: ${clearResult.explicitness.hasExamples ? '✓' : '✗'}`));
-    clearResult.explicitness.issues.forEach((issue: string) => {
-      console.log(eColor(`      • ${issue}`));
+    // Style
+    const sColor = getScoreColor(costarScore.style);
+    console.log(sColor.bold(`  [S] Style: ${costarScore.style.toFixed(0)}%`));
+    console.log(
+      sColor(`      Format Specified: ${costarResult.style.formatSpecified ? 'Yes' : 'No'}`)
+    );
+    console.log(
+      sColor(`      Structure Defined: ${costarResult.style.structureDefined ? 'Yes' : 'No'}`)
+    );
+    console.log(
+      sColor(`      Presentation Clear: ${costarResult.style.presentationClear ? 'Yes' : 'No'}`)
+    );
+    costarResult.style.issues.forEach((issue: string) => {
+      console.log(sColor(`      • ${issue}`));
     });
     console.log();
 
-    // Adaptiveness
-    if (clearResult.adaptiveness) {
-      const aColor = getScoreColor(clearScore.adaptiveness || 0);
-      console.log(aColor.bold(`  [A] Adaptiveness: ${(clearScore.adaptiveness || 0).toFixed(0)}%`));
-      console.log(aColor(`      Alternative Phrasings: ${clearResult.adaptiveness.alternativePhrasings.length}`));
-      console.log(aColor(`      Alternative Structures: ${clearResult.adaptiveness.alternativeStructures.length}`));
-      console.log(aColor(`      Temperature: ${clearResult.adaptiveness.temperatureRecommendation}`));
-      clearResult.adaptiveness.issues.forEach((issue: string) => {
+    // Tone
+    if (costarResult.tone) {
+      const tColor = getScoreColor(costarScore.tone || 0);
+      console.log(tColor.bold(`  [T] Tone: ${(costarScore.tone || 0).toFixed(0)}%`));
+      console.log(
+        tColor(`      Tone Specified: ${costarResult.tone.toneSpecified ? 'Yes' : 'No'}`)
+      );
+      console.log(
+        tColor(`      Voice Consistency: ${costarResult.tone.voiceConsistency ? 'Yes' : 'No'}`)
+      );
+      console.log(tColor(`      Formality: ${costarResult.tone.formalityLevel}`));
+      costarResult.tone.issues.forEach((issue: string) => {
+        console.log(tColor(`      • ${issue}`));
+      });
+      console.log();
+    }
+
+    // Audience
+    if (costarResult.audience) {
+      const aColor = getScoreColor(costarScore.audience || 0);
+      console.log(aColor.bold(`  [A] Audience: ${(costarScore.audience || 0).toFixed(0)}%`));
+      console.log(
+        aColor(
+          `      Audience Specified: ${costarResult.audience.audienceSpecified ? 'Yes' : 'No'}`
+        )
+      );
+      console.log(
+        aColor(
+          `      Skill Level Defined: ${costarResult.audience.skillLevelDefined ? 'Yes' : 'No'}`
+        )
+      );
+      console.log(
+        aColor(`      Needs Addressed: ${costarResult.audience.needsAddressed ? 'Yes' : 'No'}`)
+      );
+      costarResult.audience.issues.forEach((issue: string) => {
         console.log(aColor(`      • ${issue}`));
       });
       console.log();
     }
 
-    // Reflectiveness
-    if (clearResult.reflectiveness) {
-      const rColor = getScoreColor(clearScore.reflectiveness || 0);
-      console.log(rColor.bold(`  [R] Reflectiveness: ${(clearScore.reflectiveness || 0).toFixed(0)}%`));
-      console.log(rColor(`      Validation Checks: ${clearResult.reflectiveness.validationChecklist.length}`));
-      console.log(rColor(`      Edge Cases: ${clearResult.reflectiveness.edgeCases.length}`));
-      console.log(rColor(`      Potential Issues: ${clearResult.reflectiveness.potentialIssues.length}`));
-      console.log(rColor(`      Fact-Checking Steps: ${clearResult.reflectiveness.factCheckingSteps.length}`));
-      clearResult.reflectiveness.issues.forEach((issue: string) => {
+    // Response
+    if (costarResult.response) {
+      const rColor = getScoreColor(costarScore.response || 0);
+      console.log(rColor.bold(`  [R] Response: ${(costarScore.response || 0).toFixed(0)}%`));
+      console.log(
+        rColor(
+          `      Output Format: ${costarResult.response.outputFormatClear ? 'Clear' : 'Unclear'}`
+        )
+      );
+      console.log(
+        rColor(
+          `      Deliverables: ${costarResult.response.deliverablesSpecified ? 'Specified' : 'Not specified'}`
+        )
+      );
+      console.log(
+        rColor(
+          `      Examples: ${costarResult.response.examplesProvided ? 'Provided' : 'Not provided'}`
+        )
+      );
+      costarResult.response.issues.forEach((issue: string) => {
         console.log(rColor(`      • ${issue}`));
       });
       console.log();
     }
 
     // Overall
-    const overallColor = getScoreColor(clearScore.overall);
-    console.log(overallColor.bold(`  Overall Score: ${clearScore.overall.toFixed(0)}% (${clearScore.rating})\n`));
+    const overallColor = getScoreColor(costarScore.overall);
+    console.log(
+      overallColor.bold(
+        `  Overall Score: ${costarScore.overall.toFixed(0)}% (${costarScore.rating})\n`
+      )
+    );
 
-    console.log(chalk.gray('Use without --clear-only flag to see improved prompt and detailed sections.\n'));
+    console.log(
+      chalk.gray('Use without --costar-only flag to see improved prompt and detailed sections.\n')
+    );
   }
 
-  private async savePrompt(improvedPrompt: string, originalPrompt: string, clearScore: CLEARScore): Promise<void> {
+  private async savePrompt(
+    improvedPrompt: string,
+    originalPrompt: string,
+    costarScore: COSTARScore
+  ): Promise<void> {
     try {
       const promptManager = new PromptManager();
 
-      // Build content with full CLEAR scores (including A and R)
+      // Build content with full COSTAR scores (including T, A, R)
       const content = `# Improved Prompt
 
 ${improvedPrompt}
 
-## CLEAR Scores (Deep Analysis)
-- **C** (Conciseness): ${clearScore.conciseness.toFixed(0)}%
-- **L** (Logic): ${clearScore.logic.toFixed(0)}%
-- **E** (Explicitness): ${clearScore.explicitness.toFixed(0)}%
-- **A** (Adaptiveness): ${(clearScore.adaptiveness || 0).toFixed(0)}%
-- **R** (Reflectiveness): ${(clearScore.reflectiveness || 0).toFixed(0)}%
-- **Overall**: ${clearScore.overall.toFixed(0)}% (${clearScore.rating})
+## COSTAR Scores (Deep Analysis)
+- **C** (Context): ${costarScore.context.toFixed(0)}%
+- **O** (Objective): ${costarScore.objective.toFixed(0)}%
+- **S** (Style): ${costarScore.style.toFixed(0)}%
+- **T** (Tone): ${(costarScore.tone || 0).toFixed(0)}%
+- **A** (Audience): ${(costarScore.audience || 0).toFixed(0)}%
+- **R** (Response): ${(costarScore.response || 0).toFixed(0)}%
+- **Overall**: ${costarScore.overall.toFixed(0)}% (${costarScore.rating})
 
 ## Original Prompt
 \`\`\`
@@ -318,37 +413,41 @@ ${originalPrompt}
   }
 
   private displayFrameworkInfo(): void {
-    console.log(chalk.bold.cyan('\n🎯 CLEAR Framework for Prompt Engineering\n'));
+    console.log(chalk.bold.cyan('\n🎯 COSTAR Framework for Prompt Engineering\n'));
 
     console.log(chalk.bold('What is CLEAR?\n'));
     console.log('CLEAR is an academically-validated framework for creating effective prompts:');
     console.log();
 
-    console.log(chalk.green.bold('  [C] Concise'));
+    console.log(chalk.green.bold('  [C] Context'));
     console.log(chalk.green('      Eliminate verbosity and pleasantries'));
     console.log(chalk.green('      Focus on essential information'));
     console.log(chalk.green('      Example: "Please could you maybe help" → "Create"'));
     console.log();
 
-    console.log(chalk.blue.bold('  [L] Logical'));
+    console.log(chalk.blue.bold('  [O] Objective'));
     console.log(chalk.blue('      Ensure coherent sequencing'));
     console.log(chalk.blue('      Structure: Context → Requirements → Constraints → Output'));
     console.log(chalk.blue('      Example: Put background before asking for results'));
     console.log();
 
-    console.log(chalk.yellow.bold('  [E] Explicit'));
+    console.log(chalk.yellow.bold('  [S] Style'));
     console.log(chalk.yellow('      Specify persona, format, tone, and success criteria'));
     console.log(chalk.yellow('      Define exactly what you want'));
-    console.log(chalk.yellow('      Example: "Build a dashboard" → "Build a React analytics dashboard with charts"'));
+    console.log(
+      chalk.yellow(
+        '      Example: "Build a dashboard" → "Build a React analytics dashboard with charts"'
+      )
+    );
     console.log();
 
-    console.log(chalk.magenta.bold('  [A] Adaptive'));
+    console.log(chalk.magenta.bold('  [T] Tone'));
     console.log(chalk.magenta('      Provide alternative approaches'));
     console.log(chalk.magenta('      Flexibility and customization'));
     console.log(chalk.magenta('      Example: User story, job story, or structured formats'));
     console.log();
 
-    console.log(chalk.cyan.bold('  [R] Reflective'));
+    console.log(chalk.cyan.bold('  [A] Audience'));
     console.log(chalk.cyan('      Enable validation and quality checks'));
     console.log(chalk.cyan('      Edge cases and "what could go wrong"'));
     console.log(chalk.cyan('      Example: Fact-checking steps, success criteria validation'));
@@ -364,13 +463,21 @@ ${originalPrompt}
 
     console.log(chalk.bold('Resources:\n'));
     console.log('  • Framework Guide: https://guides.library.tamucc.edu/prompt-engineering/clear');
-    console.log('  • Research Paper: https://digitalrepository.unm.edu/cgi/viewcontent.cgi?article=1214&context=ulls_fsp');
+    console.log(
+      '  • Research Paper: https://digitalrepository.unm.edu/cgi/viewcontent.cgi?article=1214&context=ulls_fsp'
+    );
     console.log();
 
     console.log(chalk.bold('Usage in DevFlow:\n'));
-    console.log(chalk.cyan('  devflow fast "prompt"') + chalk.gray('     # Uses C, L, E components'));
-    console.log(chalk.cyan('  devflow deep "prompt"') + chalk.gray('     # Uses full CLEAR (C, L, E, A, R)'));
-    console.log(chalk.cyan('  devflow deep --clear-only') + chalk.gray(' # Show scores only, no improvement'));
+    console.log(
+      chalk.cyan('  devflow fast "prompt"') + chalk.gray('     # Uses C, L, E components')
+    );
+    console.log(
+      chalk.cyan('  devflow deep "prompt"') + chalk.gray('     # Uses full CLEAR (C, L, E, A, R)')
+    );
+    console.log(
+      chalk.cyan('  devflow deep --costar-only') + chalk.gray(' # Show scores only, no improvement')
+    );
     console.log();
   }
 }

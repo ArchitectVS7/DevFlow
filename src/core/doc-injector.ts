@@ -14,8 +14,8 @@ export interface ManagedBlockOptions {
  * DocInjector - manages injection and updating of managed blocks in documentation files
  */
 export class DocInjector {
-  private static readonly DEFAULT_START_MARKER = '<!-- CLAVIX:START -->';
-  private static readonly DEFAULT_END_MARKER = '<!-- CLAVIX:END -->';
+  private static readonly DEFAULT_START_MARKER = '<!-- DEVFLOW:START -->';
+  private static readonly DEFAULT_END_MARKER = '<!-- DEVFLOW:END -->';
 
   /**
    * Inject or update managed block in a file
@@ -203,7 +203,7 @@ export class DocInjector {
 
 This file contains instructions for AI agents working with this project.
 
-<!-- CLAVIX:START -->
+<!-- DEVFLOW:START -->
 # DevFlow - Prompt Improvement Assistant
 
 DevFlow is installed in this project. Use the following slash commands:
@@ -220,7 +220,7 @@ DevFlow is installed in this project. Use the following slash commands:
 - **PRD mode**: Strategic planning with architecture and business impact
 
 For more information, run \`devflow --help\` in your terminal.
-<!-- CLAVIX:END -->
+<!-- DEVFLOW:END -->
 `;
   }
 
@@ -230,7 +230,7 @@ For more information, run \`devflow --help\` in your terminal.
   static getDefaultClaudeContent(): string {
     return `# Claude Code Instructions
 
-<!-- CLAVIX:START -->
+<!-- DEVFLOW:START -->
 ## DevFlow Integration
 
 This project uses DevFlow for prompt improvement and PRD generation. The following slash commands are available:
@@ -256,7 +256,7 @@ Analyze the current conversation and extract key requirements into a structured 
 - **PRD mode** (\`/devflow:prd\`): Strategic planning with architecture and business impact
 
 **Pro tip**: Start complex features with \`/devflow:prd\` or \`/devflow:start\` to ensure clear requirements before implementation.
-<!-- CLAVIX:END -->
+<!-- DEVFLOW:END -->
 `;
   }
 }

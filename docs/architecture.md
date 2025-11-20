@@ -56,6 +56,9 @@ DevFlow is a CLI tool built with Node.js and TypeScript that bridges the gap bet
 
 **Key Files:**
 - `init.ts` - Project initialization
+- `fast.ts` - Quick prompt optimization (COSTAR)
+- `deep.ts` - Deep prompt analysis (COSTAR)
+- `summarize.ts` - Conversation summarization
 - `prd.ts` - PRD generation
 - `plan.ts` - Task planning
 - `implement.ts` - Implementation workflow
@@ -126,6 +129,18 @@ DevFlow is a CLI tool built with Node.js and TypeScript that bridges the gap bet
 **Key Methods:**
 - `complete()` - Execute LLM prompt
 
+#### Prompt Optimizer (`prompt-optimizer.ts`)
+**Responsibilities:**
+- COSTAR framework analysis
+- Prompt scoring (Context, Objective, Style, Tone, Audience, Response)
+- Prompt rewriting and improvement
+- Smart triage (Fast vs Deep mode)
+
+**Key Methods:**
+- `analyze()` - Analyze prompt components
+- `calculateCOSTARScore()` - Calculate framework score
+- `improve()` - Generate optimized prompt
+
 ### 3. Type System (`src/types/`)
 
 **Purpose:** TypeScript type definitions
@@ -147,6 +162,28 @@ DevFlow is a CLI tool built with Node.js and TypeScript that bridges the gap bet
 ---
 
 ## Data Flow
+
+### Prompt Optimization Flow
+```
+User Input (Prompt)
+    │
+    ▼
+Prompt Optimizer
+    │
+    ├─→ COSTAR Analysis (C, O, S, [T, A, R])
+    │       │
+    │       ▼
+    │   Scoring Engine
+    │       │
+    │       ▼
+    └─→ Prompt Rewriter
+            │
+            ▼
+        Optimized Prompt
+            │
+            ▼
+    .devflow/outputs/prompts/
+```
 
 ### PRD Generation Flow
 
@@ -372,6 +409,8 @@ src/
 - **ts-jest** - TypeScript Jest integration
 - **ESLint** - Linting
 - **Prettier** - Code formatting
+- **Husky** - Git hooks
+- **lint-staged** - Staged file linting
 
 ### Build
 
