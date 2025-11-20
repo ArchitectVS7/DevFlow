@@ -1,4 +1,6 @@
-# DevFlow
+# DevFlow 
+
+*v0.7 Alpha*
 
 **Intelligent workflow automation for modern development teams**
 
@@ -147,3 +149,4 @@ MIT
 - **Documentation**: [docs/](docs/README.md)
 - **Issues**: [github.com/ArchitectVS7/DevFlow/issues](https://github.com/ArchitectVS7/DevFlow/issues)
 - **Repository**: [github.com/ArchitectVS7/DevFlow](https://github.com/ArchitectVS7/DevFlow)
+
