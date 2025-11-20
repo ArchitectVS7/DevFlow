@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+*.tsbuildinfo
+*.tgz
+
+# Testing
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local DevFlow data and provider directories (for testing)
+.devflow/
+.claude/
+.windsurf/
+.kilocode/
+.cline/
+.roo/
+.crush/
+.cursor/
+.factory/
+.opencode/
+.agents/
+.codebuddy/
+
+# Generated documentation files
+AGENTS.md
+OCTO.md
+CLAUDE.md
+
+# OpenSpec (local spec working files)
+openspec/
+
+# GitHub workflows and config (local)
+
