@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevFlow PRD Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #05060a;
+      --card: rgba(255, 255, 255, 0.05);
+      --glow: 0 30px 80px rgba(93, 146, 255, 0.35);
+      --accent: #7dd4ff;
+      --accent-2: #9e7bff;
+      --grid: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.06) 1px, transparent 0);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(142, 199, 255, 0.1), transparent 30%),
+                  radial-gradient(circle at 80% 0%, rgba(158, 123, 255, 0.18), transparent 28%),
+                  var(--bg);
+      color: #e8ecf5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 28px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(125, 212, 255, 0.7), rgba(158, 123, 255, 0.8));
+      box-shadow: 0 20px 40px rgba(125, 212, 255, 0.28);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #021221;
+      font-family: "Space Grotesk", "Inter", sans-serif;
+      font-size: 17px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      letter-spacing: -0.4px;
+    }
+
+    .tagline {
+      color: #9fb7d3;
+      margin: 4px 0 0;
+      font-size: 15px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(125, 212, 255, 0.12), rgba(158, 123, 255, 0.16));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+      font-weight: 600;
+      color: #d3e6ff;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      width: 100%;
+      flex: 1;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 22px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--grid) 0 0/28px 28px;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      letter-spacing: -0.2px;
+    }
+
+    .panel small {
+      color: #a9b8cf;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(125, 212, 255, 0.12);
+      color: #bde6ff;
+      margin-bottom: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(125, 212, 255, 0.18);
+    }
+
+    .controls {
+      display: grid;
+      gap: 12px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #d7e6ff;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: #e8ecf5;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    textarea { resize: vertical; min-height: 120px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: linear-gradient(120deg, rgba(125, 212, 255, 0.8), rgba(158, 123, 255, 0.72));
+      color: #031325;
+      cursor: pointer;
+      font-weight: 700;
+      letter-spacing: 0.15px;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+      box-shadow: 0 14px 40px rgba(125, 212, 255, 0.35);
+    }
+
+    .btn.secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: #dfe8ff;
+      box-shadow: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+
+    .stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #c7d5ed;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      position: relative;
+      padding: 18px 18px 16px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: var(--glow);
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(125, 212, 255, 0.16), transparent 35%);
+      pointer-events: none;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+
+    .card .meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: #a9b8cf;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .card .content {
+      line-height: 1.55;
+      color: #dfe6f4;
+      font-size: 14px;
+    }
+
+    .card .content h4 { margin: 12px 0 6px; }
+    .card .content ul { padding-left: 18px; margin: 6px 0 10px; }
+    .card .content code { background: rgba(0, 0, 0, 0.35); padding: 2px 5px; border-radius: 6px; }
+
+    .grid-two {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .coming-soon {
+      display: grid;
+      gap: 12px;
+    }
+
+    .coming-soon .card { box-shadow: none; }
+
+    .inline {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .timeline .step {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #c7d6ef;
+    }
+
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7dd4ff, #9e7bff);
+      box-shadow: 0 0 0 4px rgba(125, 212, 255, 0.18);
+    }
+
+    .footer {
+      margin-top: 18px;
+      color: #95a4be;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ghost-input {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px dashed rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.03);
+      color: #c7d6ef;
+      font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+      body { padding: 18px; }
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <div class="logo">DF</div>
+      <div>
+        <h1>DevFlow PRD Studio</h1>
+        <p class="tagline">Design, review, and ship PRDs with a realtime agent-powered copilot.</p>
+      </div>
+    </div>
+    <div class="pill">Live Markdown rendering · Section-level intelligence · Agent-ready hooks</div>
+  </header>
+
+  <div class="layout">
+    <aside class="panel" aria-label="Controls">
+      <div class="status">● Connected to DevFlow session</div>
+      <div class="controls">
+        <div class="stack">
+          <label for="section-title">New section</label>
+          <input id="section-title" type="text" placeholder="e.g., Success Metrics" />
+          <textarea id="section-md" placeholder="Use markdown to outline this section..."></textarea>
+          <div class="inline">
+            <button class="btn" id="add-section">Add to PRD</button>
+            <button class="btn secondary" id="clear-section">Reset</button>
+          </div>
+        </div>
+
+        <div class="stack">
+          <label for="template-select">Templates</label>
+          <select id="template-select">
+            <option value="">Choose a starting point</option>
+            <option value="overview">Product Overview</option>
+            <option value="requirements">Functional Requirements</option>
+            <option value="release">Release Readiness</option>
+          </select>
+          <small>Templates are auto-optimized by DevFlow and stay editable in markdown.</small>
+        </div>
+
+        <div class="stack">
+          <label>Actions</label>
+          <div class="inline">
+            <button class="btn secondary" id="suggest">Suggest next section</button>
+            <button class="btn secondary" id="validate">Run PRD QA</button>
+          </div>
+          <div class="timeline" id="activity-log"></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="panel" aria-label="PRD Canvas">
+      <h2>Realtime PRD Canvas</h2>
+      <small>Markdown is rendered as you type. Click any card to open the original markdown.</small>
+      <div class="board" id="prd-board"></div>
+    </main>
+  </div>
+
+  <section class="panel" aria-label="Coming soon" style="margin-top: 18px;">
+    <h2>Coming soon</h2>
+    <div class="coming-soon">
+      <div class="card">
+        <div class="badge">Auto-sync</div>
+        <h3>Two-way sync with GitHub PRDs</h3>
+        <p class="content">Push rendered PRDs directly into your repos, and pull existing markdown into the canvas with lineage tracking.</p>
+      </div>
+      <div class="card">
+        <div class="badge">Insight graphs</div>
+        <h3>Signal-aware risk maps</h3>
+        <p class="content">Surface ambiguous requirements, scope creep, and dependency risk as layered charts right inside the PRD.</p>
+      </div>
+      <div class="card">
+        <div class="badge">Team spaces</div>
+        <h3>Co-editing with reviewer roles</h3>
+        <p class="content">Assign owners, reviewers, and approvers with inline comments that stay bound to section-level markdown.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span class="badge">DevFlow • Agent-ready</span>
+    <span>Live rendering reflects the markdown stored inside the DevFlow session. Extend the callbacks below to wire into the actual engine.</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const board = document.getElementById('prd-board');
+    const sectionTitle = document.getElementById('section-title');
+    const sectionMd = document.getElementById('section-md');
+    const templateSelect = document.getElementById('template-select');
+    const activity = document.getElementById('activity-log');
+
+    const templates = {
+      overview: `### Context\n- Problem: Fragmented developer visibility\n- Goal: Single-source PRD that stays in sync with the agent conversation\n- Success: Faster approvals with traceable decisions`,
+      requirements: `### Core capabilities\n- Auth: OIDC with fine-grained scopes\n- Collaboration: Section-level comments\n- Observability: Interaction telemetry for every change\n\n### Edge cases\n- Offline editing mode\n- Redaction for customer data`,
+      release: `### Rollout\n- Beta: 25 design partners\n- GA: Wave rollout with guardrails\n\n### Readiness\n- Docs, runbooks, and test strategy generated via DevFlow\n- Launch checklist auto-updates from QA agent`
+    };
+
+    const seedSections = [
+      {
+        title: 'Product Overview',
+        markdown: `### Goal\nCreate a real-time PRD workspace that mirrors DevFlow's agentic reasoning.\n\n### Drivers\n- Reduce manual formatting work by rendering markdown instantly\n- Keep every PRD section traceable to the conversation that produced it\n- Let reviewers browse a clear, visual map of the document`
+      },
+      {
+        title: 'Key Requirements',
+        markdown: `### Authoring\n- Live markdown preview with section isolation\n- Inline prompts for DevFlow actions (expand, clarify, validate)\n\n### Governance\n- Approval gates for launch-critical sections\n- Change history anchored to the PRD session`
+      }
+    ];
+
+    function renderMarkdown(md) {
+      return marked.parse(md, { breaks: true });
+    }
+
+    function addActivity(message) {
+      const step = document.createElement('div');
+      step.className = 'step';
+      step.innerHTML = `<span class="dot"></span><div>${message}</div>`;
+      activity.prepend(step);
+    }
+
+    function createCard({ title, markdown }) {
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML = `
+        <h3>${title}</h3>
+        <div class="meta">
+          <span class="badge">Live markdown</span>
+          <span class="badge">Traceable</span>
+        </div>
+        <div class="content">${renderMarkdown(markdown)}</div>
+      `;
+      card.addEventListener('click', () => {
+        const ghost = document.createElement('div');
+        ghost.className = 'ghost-input';
+        ghost.textContent = markdown;
+        card.replaceWith(ghost);
+        setTimeout(() => ghost.replaceWith(card), 1800);
+      });
+      return card;
+    }
+
+    function refreshBoard(sections) {
+      board.innerHTML = '';
+      sections.forEach(section => board.appendChild(createCard(section)));
+    }
+
+    function clearInputs() {
+      sectionTitle.value = '';
+      sectionMd.value = '';
+    }
+
+    templateSelect.addEventListener('change', (e) => {
+      const value = e.target.value;
+      if (value && templates[value]) {
+        sectionMd.value = templates[value];
+        addActivity(`Applied template: ${value}`);
+      }
+    });
+
+    document.getElementById('add-section').addEventListener('click', () => {
+      if (!sectionTitle.value || !sectionMd.value) return;
+      seedSections.unshift({ title: sectionTitle.value, markdown: sectionMd.value });
+      refreshBoard(seedSections);
+      addActivity(`Added section “${sectionTitle.value}”`);
+      clearInputs();
+    });
+
+    document.getElementById('clear-section').addEventListener('click', clearInputs);
+
+    document.getElementById('suggest').addEventListener('click', () => {
+      addActivity('DevFlow suggests: Add "Open Questions" to unblock review.');
+    });
+
+    document.getElementById('validate').addEventListener('click', () => {
+      addActivity('QA agent flagged 2 clarity gaps in "Key Requirements".');
+    });
+
+    refreshBoard(seedSections);
+  </script>
+</body>
+</html>
