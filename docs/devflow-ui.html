@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevFlow PRD Studio</title>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: radial-gradient(circle at 20% 20%, #122148, #0a0f1f 40%, #05070f);
+        --panel: rgba(255, 255, 255, 0.04);
+        --panel-strong: rgba(255, 255, 255, 0.08);
+        --accent: #7ee0ff;
+        --accent-2: #9e7bff;
+        --text: #e6f1ff;
+        --muted: #96a3c1;
+        --glow: drop-shadow(0 10px 30px rgba(126, 224, 255, 0.25));
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 32px;
+        gap: 24px;
+      }
+
+      .grid {
+        width: min(1200px, 100%);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 18px;
+      }
+
+      header {
+        width: min(1200px, 100%);
+        display: grid;
+        gap: 16px;
+        grid-template-columns: 2fr 1fr;
+        align-items: center;
+      }
+
+      @media (max-width: 960px) {
+        header {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .hero {
+        background: linear-gradient(120deg, rgba(126, 224, 255, 0.18), rgba(158, 123, 255, 0.15)), var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        min-height: 200px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+      }
+
+      .hero::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 80% 20%, rgba(126, 224, 255, 0.35), transparent 35%);
+        mix-blend-mode: screen;
+        pointer-events: none;
+      }
+
+      .hero h1 {
+        margin: 0 0 8px;
+        font-size: clamp(26px, 5vw, 36px);
+        letter-spacing: -0.02em;
+      }
+
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 640px;
+        line-height: 1.6;
+      }
+
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .chip {
+        padding: 8px 12px;
+        background: var(--panel-strong);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 16px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      }
+
+      .panel-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .panel-title h2 {
+        margin: 0;
+        font-size: 16px;
+        letter-spacing: 0.04em;
+      }
+
+      .pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: linear-gradient(120deg, rgba(126, 224, 255, 0.2), rgba(158, 123, 255, 0.2));
+        color: #d7e7ff;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .input-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      label {
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.06em;
+      }
+
+      .field {
+        position: relative;
+      }
+
+      textarea, input[type='text'] {
+        width: 100%;
+        padding: 14px 14px 14px 14px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: var(--text);
+        font-size: 14px;
+        outline: 2px solid transparent;
+        transition: outline 120ms ease, border-color 120ms ease, transform 120ms ease;
+      }
+
+      textarea:focus, input[type='text']:focus {
+        outline: 2px solid rgba(126, 224, 255, 0.25);
+        border-color: rgba(126, 224, 255, 0.35);
+        transform: translateY(-2px);
+      }
+
+      textarea {
+        min-height: 140px;
+        resize: vertical;
+      }
+
+      button {
+        cursor: pointer;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 16px;
+        background: linear-gradient(120deg, #7ee0ff, #9e7bff);
+        color: #0a0f1f;
+        font-weight: 700;
+        font-size: 14px;
+        box-shadow: 0 10px 35px rgba(126, 224, 255, 0.35);
+        transition: transform 120ms ease, box-shadow 120ms ease;
+      }
+
+      button:active {
+        transform: translateY(2px);
+        box-shadow: 0 6px 20px rgba(126, 224, 255, 0.3);
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .secondary {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: none;
+      }
+
+      .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+      }
+
+      .status {
+        background: var(--panel-strong);
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .status strong {
+        display: block;
+        margin-bottom: 6px;
+        color: #d7e7ff;
+        letter-spacing: 0.04em;
+      }
+
+      .status small {
+        color: var(--muted);
+      }
+
+      .preview {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 12px;
+      }
+
+      @media (max-width: 1000px) {
+        .preview {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .section-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .section-card {
+        padding: 12px;
+        background: var(--panel-strong);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+        transition: border-color 120ms ease, transform 120ms ease;
+      }
+
+      .section-card:hover {
+        border-color: rgba(126, 224, 255, 0.4);
+        transform: translateY(-2px);
+      }
+
+      .section-card.active {
+        border-color: rgba(126, 224, 255, 0.6);
+        background: linear-gradient(120deg, rgba(126, 224, 255, 0.12), rgba(158, 123, 255, 0.08));
+      }
+
+      .section-card .title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .section-card h3 {
+        margin: 0;
+        font-size: 14px;
+      }
+
+      .tag {
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(126, 224, 255, 0.14);
+        border: 1px solid rgba(126, 224, 255, 0.3);
+        color: #b5eaff;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+      }
+
+      .progress {
+        margin-top: 8px;
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .progress span {
+        position: absolute;
+        inset: 0;
+        width: var(--pct);
+        background: linear-gradient(120deg, #7ee0ff, #9e7bff);
+        border-radius: inherit;
+      }
+
+      .markdown-preview {
+        background: var(--panel-strong);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 16px;
+        min-height: 300px;
+        overflow: auto;
+        line-height: 1.6;
+      }
+
+      .markdown-preview h2,
+      .markdown-preview h3,
+      .markdown-preview h4 {
+        margin-top: 16px;
+      }
+
+      .markdown-preview ul {
+        padding-left: 20px;
+        color: #d7e7ff;
+      }
+
+      .markdown-preview p {
+        color: var(--muted);
+      }
+
+      .markdown-preview code {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 2px 6px;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 10px;
+      }
+
+      .timeline-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid rgba(126, 224, 255, 0.5);
+        background: rgba(126, 224, 255, 0.18);
+        box-shadow: 0 0 0 6px rgba(126, 224, 255, 0.12);
+      }
+
+      .timeline-row span {
+        color: var(--muted);
+        letter-spacing: 0.04em;
+        font-size: 12px;
+      }
+
+      .coming-soon {
+        display: grid;
+        gap: 10px;
+      }
+
+      .soon-item {
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px dashed rgba(255, 255, 255, 0.14);
+      }
+
+      .soon-item strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .badge-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .badge {
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="hero">
+        <h1>DevFlow PRD Studio</h1>
+        <p>
+          Compose, iterate, and ship production-ready PRDs with a live preview that mirrors
+          how DevFlow assembles requirements inside claude code. Type a prompt, generate
+          sections, and refine each one in place.
+        </p>
+        <div class="chip-row">
+          <div class="chip">Realtime markdown rendering</div>
+          <div class="chip">Section-aware editing</div>
+          <div class="chip">PRD lineage tracking</div>
+          <div class="chip">AI-ready prompts</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">
+          <h2>Session controls</h2>
+          <span class="pill">Live sync</span>
+        </div>
+        <div class="input-stack">
+          <div class="field">
+            <label>High-level intent</label>
+            <input
+              id="intent"
+              type="text"
+              value="Build a DevFlow-powered PRD workspace UI"
+              aria-label="High-level intent"
+            />
+          </div>
+          <div class="field">
+            <label>Describe the product requirement</label>
+            <textarea
+              id="prompt"
+              aria-label="Product requirement details"
+              placeholder="Explain the PRD you want to build..."
+            >Interactive UI to collect PRD inputs, stream markdown previews, and manage sections.</textarea>
+          </div>
+          <div class="controls">
+            <button id="generate">Generate PRD Draft</button>
+            <button class="secondary" id="insert">Insert Section</button>
+            <button class="secondary" id="sync">Sync with DevFlow</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="panel" style="grid-column: span 2;">
+        <div class="panel-title">
+          <h2>Live PRD preview</h2>
+          <span class="pill" id="status-pill">Draft · Streaming</span>
+        </div>
+        <div class="preview">
+          <div class="section-list" id="section-list"></div>
+          <div class="markdown-preview" id="preview"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Session health</h2>
+          <span class="pill">Claude code</span>
+        </div>
+        <div class="status-grid">
+          <div class="status">
+            <strong>Latency</strong>
+            <small id="latency">42 ms</small>
+          </div>
+          <div class="status">
+            <strong>Draft quality</strong>
+            <small id="quality">A/B testing</small>
+          </div>
+          <div class="status">
+            <strong>Guardrails</strong>
+            <small>Requirements completeness</small>
+          </div>
+          <div class="status">
+            <strong>Export</strong>
+            <small>Markdown · HTML · JSON</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Timeline</h2>
+          <span class="pill">PRD lifecycle</span>
+        </div>
+        <div class="timeline" id="timeline"></div>
+      </section>
+
+      <section class="panel" style="grid-column: span 2;">
+        <div class="panel-title">
+          <h2>Coming soon</h2>
+          <span class="pill">Roadmap</span>
+        </div>
+        <div class="coming-soon">
+          <div class="soon-item">
+            <strong>Team cursors &amp; presence</strong>
+            <div class="badge-row">
+              <span class="badge">Realtime co-editing</span>
+              <span class="badge">Comment anchors</span>
+            </div>
+            <small>Invite PMs and engineers to co-create PRDs with ephemeral cursors and inline feedback.</small>
+          </div>
+          <div class="soon-item">
+            <strong>Design artifact linking</strong>
+            <div class="badge-row">
+              <span class="badge">Figma / Miro sync</span>
+              <span class="badge">Spec snapshots</span>
+            </div>
+            <small>Attach wireframes and flows so DevFlow can reason over visual context while drafting.</small>
+          </div>
+          <div class="soon-item">
+            <strong>One-click story handoff</strong>
+            <div class="badge-row">
+              <span class="badge">Backlog automation</span>
+              <span class="badge">Acceptance criteria</span>
+            </div>
+            <small>Push approved sections directly into Jira, Linear, or GitHub Projects with traceability.</small>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+      const sections = [
+        {
+          id: 'overview',
+          title: '1. Overview',
+          status: 'Complete',
+          pct: 100,
+          markdown: `## Product overview\n\nDevFlow PRD Studio is a lightweight wrapper that mirrors how Claude code assembles requirements.\nUsers draft intent, stream live markdown previews, and lock sections before exporting to their delivery tracks.`,
+        },
+        {
+          id: 'goals',
+          title: '2. Goals & non-goals',
+          status: 'In review',
+          pct: 72,
+          markdown: `### Goals\n- Capture PRD inputs and intent with minimal friction.\n- Render markdown sections in real time while keeping context aligned with DevFlow.\n- Provide visual affordances for draft quality and progress.\n\n### Non-goals\n- Replace source control; rely on DevFlow for canonical storage.`,
+        },
+        {
+          id: 'flows',
+          title: '3. Key flows',
+          status: 'Drafting',
+          pct: 54,
+          markdown: `1. User enters a product intent and detailed requirement.\n2. DevFlow generates structured sections; UI streams markdown into preview.\n3. User pins sections, edits text, and syncs back to DevFlow.\n4. Exports are generated in Markdown, HTML, or JSON with lineage stamps.`,
+        },
+        {
+          id: 'risks',
+          title: '4. Risks & mitigations',
+          status: 'Pending',
+          pct: 28,
+          markdown: `- **Context drift:** Highlight missing signals and prompt for clarifications.\n- **Format divergence:** Enforce section schema and live validators.\n- **Latency spikes:** Surface live latency and fall back to cached drafts.`,
+        },
+      ];
+
+      const timelineSteps = [
+        ['Prompt submitted', 'Input sanitized & packaged'],
+        ['Draft assembled', 'Sections streamed to UI'],
+        ['Edits synced', 'Diff recorded in DevFlow'],
+        ['Export ready', 'Markdown + JSON available'],
+      ];
+
+      const sectionList = document.getElementById('section-list');
+      const preview = document.getElementById('preview');
+      const statusPill = document.getElementById('status-pill');
+      const timeline = document.getElementById('timeline');
+      const latencyEl = document.getElementById('latency');
+      const qualityEl = document.getElementById('quality');
+
+      let active = sections[0].id;
+
+      function renderSections() {
+        sectionList.innerHTML = '';
+        sections.forEach((section) => {
+          const card = document.createElement('div');
+          card.className = `section-card ${section.id === active ? 'active' : ''}`;
+          card.innerHTML = `
+            <div class="title">
+              <h3>${section.title}</h3>
+              <span class="tag">${section.status}</span>
+            </div>
+            <div class="progress" role="presentation"><span style="--pct:${section.pct}%"></span></div>
+          `;
+          card.addEventListener('click', () => {
+            active = section.id;
+            renderSections();
+            renderPreview();
+          });
+          sectionList.appendChild(card);
+        });
+      }
+
+      function renderPreview() {
+        const section = sections.find((s) => s.id === active);
+        if (!section) return;
+        preview.innerHTML = marked.parse(section.markdown);
+        statusPill.textContent = `${section.status} · ${section.title}`;
+      }
+
+      function renderTimeline() {
+        timeline.innerHTML = '';
+        timelineSteps.forEach(([label, detail]) => {
+          const row = document.createElement('div');
+          row.className = 'timeline-row';
+          row.innerHTML = `<div class="dot"></div><div><strong>${label}</strong><br/><span>${detail}</span></div>`;
+          timeline.appendChild(row);
+        });
+      }
+
+      document.getElementById('generate').addEventListener('click', () => {
+        statusPill.textContent = 'Generating · Streaming sections';
+        const loading = ['Drafting', 'Structuring', 'Reviewing'];
+        let index = 0;
+        const timer = setInterval(() => {
+          qualityEl.textContent = `${loading[index % loading.length]} quality cues`;
+          latencyEl.textContent = `${Math.round(30 + Math.random() * 40)} ms`;
+          index += 1;
+        }, 400);
+        setTimeout(() => {
+          clearInterval(timer);
+          qualityEl.textContent = 'Ready for export';
+          latencyEl.textContent = '38 ms';
+          statusPill.textContent = 'Draft updated · Ready';
+        }, 2400);
+      });
+
+      document.getElementById('insert').addEventListener('click', () => {
+        const markdown = prompt('New section markdown');
+        if (!markdown) return;
+        const id = `section-${sections.length + 1}`;
+        sections.push({
+          id,
+          title: `${sections.length + 1}. Custom Section`,
+          status: 'Drafting',
+          pct: 10,
+          markdown,
+        });
+        active = id;
+        renderSections();
+        renderPreview();
+      });
+
+      document.getElementById('sync').addEventListener('click', () => {
+        qualityEl.textContent = 'Syncing with DevFlow...';
+        setTimeout(() => {
+          qualityEl.textContent = 'Synced · Versioned';
+          statusPill.textContent = 'Saved to DevFlow vault';
+        }, 1200);
+      });
+
+      renderSections();
+      renderPreview();
+      renderTimeline();
+    </script>
+  </body>
+</html>
