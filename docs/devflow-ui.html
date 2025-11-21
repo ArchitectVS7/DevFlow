@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevFlow PRD Studio</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #05060b;
+        --panel: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.08);
+        --accent: linear-gradient(120deg, #6ddcff, #7f60f9, #ff7fc2);
+        --text: #e8ecf3;
+        --muted: #9da9c3;
+        --card: rgba(255, 255, 255, 0.06);
+        --green: #64f4ac;
+        --amber: #ffd479;
+        --red: #ff7a9c;
+        --shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+        --glass: blur(16px) saturate(140%);
+        font-family: "Inter", "SF Pro Display", system-ui, -apple-system, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at 10% 20%, rgba(111, 233, 255, 0.08), transparent 25%),
+          radial-gradient(circle at 80% 0%, rgba(255, 143, 227, 0.1), transparent 30%),
+          radial-gradient(circle at 20% 80%, rgba(118, 77, 255, 0.12), transparent 30%),
+          var(--bg);
+        color: var(--text);
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .brand-mark {
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        background: var(--accent);
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .brand-mark::after,
+      .brand-mark::before {
+        content: "";
+        position: absolute;
+        inset: 10px;
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: var(--glass);
+      }
+
+      .brand-mark::before {
+        inset: 14px;
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 32px;
+        letter-spacing: -0.02em;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(320px, 420px) 1fr;
+        gap: 20px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        padding: 20px;
+        backdrop-filter: var(--glass);
+      }
+
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 18px;
+      }
+
+      .panel small {
+        color: var(--muted);
+      }
+
+      label {
+        display: block;
+        margin-top: 14px;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        letter-spacing: 0.01em;
+      }
+
+      textarea,
+      select,
+      input[type="text"] {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 14px;
+        color: var(--text);
+        font-size: 14px;
+        resize: vertical;
+        outline: none;
+        transition: border 150ms ease, box-shadow 150ms ease;
+      }
+
+      textarea:focus,
+      select:focus,
+      input[type="text"]:focus {
+        border-color: rgba(109, 220, 255, 0.6);
+        box-shadow: 0 0 0 3px rgba(109, 220, 255, 0.15);
+      }
+
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .controls-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+      }
+
+      .chip {
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .action-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button.primary,
+      button.ghost {
+        border: 1px solid var(--border);
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: transform 120ms ease, border 150ms ease, box-shadow 150ms ease;
+      }
+
+      button.primary {
+        background-image: var(--accent);
+        border: none;
+        box-shadow: 0 10px 30px rgba(125, 117, 255, 0.35);
+        color: #0b0c10;
+        font-weight: 700;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+      }
+
+      .preview-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .preview-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(109, 220, 255, 0.06), rgba(127, 96, 249, 0.04));
+        pointer-events: none;
+      }
+
+      .preview-card h3 {
+        margin: 0 0 10px;
+        letter-spacing: -0.01em;
+      }
+
+      .section-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+
+      .section-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .pill-mini {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--border);
+        font-size: 11px;
+        color: var(--text);
+      }
+
+      .status {
+        font-weight: 700;
+      }
+
+      .status.ready {
+        color: var(--green);
+      }
+
+      .status.inflight {
+        color: var(--amber);
+      }
+
+      .status.blocked {
+        color: var(--red);
+      }
+
+      .progress {
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+        margin-top: 12px;
+      }
+
+      .progress span {
+        display: block;
+        height: 100%;
+        background-image: var(--accent);
+      }
+
+      .grid-split {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 12px;
+      }
+
+      .coming-soon {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+      }
+
+      .mini-list {
+        list-style: none;
+        margin: 10px 0 0;
+        padding: 0;
+        color: var(--muted);
+        display: grid;
+        gap: 6px;
+      }
+
+      .mini-list li::before {
+        content: "•";
+        color: rgba(109, 220, 255, 0.9);
+        margin-right: 8px;
+      }
+
+      @media (max-width: 960px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+        header {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>
+          <h1>DevFlow PRD Studio</h1>
+          <div class="pill">Interact with Claude-driven DevFlow inside a tactile UI</div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="ghost">Sync with GitHub Projects</button>
+        <button class="ghost">Launch Claude Session</button>
+        <button class="primary">Generate PRD</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel stack">
+        <div>
+          <h2>Orchestrate</h2>
+          <small>Guide DevFlow: seed context, choose personas, and stage a live preview.</small>
+        </div>
+        <label for="title">Title</label>
+        <input id="title" type="text" value="Realtime Collaboration Suite" />
+
+        <label for="markdown-input">Context (Markdown)</label>
+        <textarea id="markdown-input" rows="10"></textarea>
+
+        <div class="controls-grid">
+          <div class="chip">Persona: Product Strategist</div>
+          <div class="chip">Mode: Storyboard</div>
+          <div class="chip">Latency guard: 800ms</div>
+          <div class="chip">Visual channel: Rich cards</div>
+        </div>
+
+        <label for="preset">Preset</label>
+        <select id="preset">
+          <option value="default">Vision-led PRD</option>
+          <option value="launch">Launch Readiness</option>
+          <option value="tech">Technical Deep Dive</option>
+        </select>
+
+        <div class="action-row">
+          <button class="primary" id="update-btn">Update Preview</button>
+          <button class="ghost" id="quick-add">Insert Acceptance Criteria</button>
+          <button class="ghost" id="clear-btn">Clear</button>
+        </div>
+      </section>
+
+      <section class="panel stack">
+        <div class="grid-split">
+          <div>
+            <div class="section-meta">
+              <div class="pill-mini">Live PRD Preview</div>
+              <div class="status ready" id="status-indicator">Ready</div>
+            </div>
+            <h2 id="doc-title">Realtime Collaboration Suite</h2>
+            <small>Markdown is rendered into Claude-ready sections as you type.</small>
+          </div>
+          <div class="preview-card">
+            <div class="section-meta">
+              <span class="pill-mini">Timeline</span>
+              <span class="pill-mini">Cost Guardrails</span>
+            </div>
+            <div class="progress"><span style="width: 48%"></span></div>
+            <ul class="mini-list">
+              <li>Drafting: Claude context is warmed.</li>
+              <li>Scoring: PRD lint and ambiguity checks.</li>
+              <li>Packaging: Handoff JSON & HTML dual outputs.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section-grid" id="section-grid"></div>
+      </section>
+    </main>
+
+    <section class="panel stack">
+      <div class="section-meta">
+        <h2 style="margin: 0">Coming Soon</h2>
+        <div class="pill-mini">Roadmap vision</div>
+      </div>
+      <div class="coming-soon">
+        <article class="preview-card">
+          <h3>Branch-aware diffs</h3>
+          <p>Preview how Claude updates PRDs as feature branches land, with merge-safe annotations.</p>
+          <ul class="mini-list">
+            <li>Repo webhooks</li>
+            <li>Inline changelog on each section</li>
+          </ul>
+        </article>
+        <article class="preview-card">
+          <h3>Scenario playback</h3>
+          <p>Time travel through PRD revisions and replay Claude prompts that produced each version.</p>
+          <ul class="mini-list">
+            <li>Stateful prompt history</li>
+            <li>Diff heatmaps</li>
+          </ul>
+        </article>
+        <article class="preview-card">
+          <h3>Design tokens</h3>
+          <p>Export PRDs as embeddable components with themable tokens for design system parity.</p>
+          <ul class="mini-list">
+            <li>Figma + Storybook sync</li>
+            <li>Multiplayer cursors</li>
+          </ul>
+        </article>
+        <article class="preview-card">
+          <h3>Execution flywheel</h3>
+          <p>Auto-create milestones in GitHub Projects and Jira as acceptance criteria stabilize.</p>
+          <ul class="mini-list">
+            <li>Confidence scoring</li>
+            <li>Auto resource envelope</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <script>
+      const markdownInput = document.getElementById("markdown-input");
+      const titleInput = document.getElementById("title");
+      const sectionGrid = document.getElementById("section-grid");
+      const docTitle = document.getElementById("doc-title");
+      const statusIndicator = document.getElementById("status-indicator");
+
+      const sampleMarkdown = `# Realtime Collaboration Suite\n## Objective\nDeliver an always-on PRD workspace where PMs and engineers co-author with Claude in the loop.\n## Users\nProduct managers, tech leads, and design partners collaborating across timezones.\n## Scope\nLive Markdown capture, AI-curated checklists, GitHub Project sync, and status-aware exports.\n## Acceptance criteria\n- All sections render within 800ms.\n- Markdown diffing is lossless and traceable.\n- PRDs export to both HTML and JSON with identical semantics.\n## Risks\nData residency, ambiguous role assignment, and vendor lock-in for collaboration primitives.\n`;
+
+      markdownInput.value = sampleMarkdown;
+
+      function chunkMarkdown(md) {
+        const lines = md.split(/\r?\n/);
+        const sections = [];
+        let current = null;
+        let docHeader = null;
+
+        for (const line of lines) {
+          const h1 = line.match(/^#\s+(.*)/);
+          const h2 = line.match(/^##\s+(.*)/);
+
+          if (h1) {
+            docHeader = h1[1].trim();
+            continue;
+          }
+
+          if (h2) {
+            if (current) sections.push(current);
+            current = { title: h2[1].trim(), content: [] };
+          } else if (current) {
+            current.content.push(line);
+          }
+        }
+
+        if (current) sections.push(current);
+        return { docHeader, sections };
+      }
+
+      function renderSections() {
+        const parsed = chunkMarkdown(markdownInput.value);
+        docTitle.textContent = titleInput.value || parsed.docHeader || "Untitled PRD";
+        const items = parsed.sections.length ? parsed.sections : [{ title: "Draft", content: ["Start typing to see sections materialize."] }];
+
+        sectionGrid.innerHTML = "";
+        items.forEach((section, index) => {
+          const card = document.createElement("article");
+          card.className = "preview-card stack";
+
+          const meta = document.createElement("div");
+          meta.className = "section-meta";
+          meta.innerHTML = `<span class="pill-mini">Section ${index + 1}</span>`;
+
+          const status = document.createElement("span");
+          status.className = "status";
+          const statuses = ["ready", "inflight", "ready", "blocked"];
+          status.textContent = statuses[index % statuses.length].toUpperCase();
+          status.classList.add(statuses[index % statuses.length]);
+          meta.appendChild(status);
+          card.appendChild(meta);
+
+          const heading = document.createElement("h3");
+          heading.textContent = section.title || `Section ${index + 1}`;
+          card.appendChild(heading);
+
+          const paragraph = document.createElement("p");
+          const text = section.content.join("\n").trim() || "Awaiting details from DevFlow.";
+          paragraph.textContent = text;
+          card.appendChild(paragraph);
+
+          const progress = document.createElement("div");
+          progress.className = "progress";
+          const span = document.createElement("span");
+          span.style.width = `${40 + (index * 12) % 50}%`;
+          progress.appendChild(span);
+          card.appendChild(progress);
+
+          sectionGrid.appendChild(card);
+        });
+
+        statusIndicator.textContent = "Live";
+        statusIndicator.className = "status ready";
+      }
+
+      document.getElementById("update-btn").addEventListener("click", renderSections);
+      markdownInput.addEventListener("input", renderSections);
+      titleInput.addEventListener("input", renderSections);
+
+      document.getElementById("clear-btn").addEventListener("click", () => {
+        markdownInput.value = "";
+        renderSections();
+      });
+
+      document.getElementById("quick-add").addEventListener("click", () => {
+        const criteria = `## Acceptance criteria\n- Latency &lt; 1s for previews\n- Audit trail stored per message\n- Export to PDF + HTML side-by-side`;
+        markdownInput.value += (markdownInput.value.endsWith("\n") ? "" : "\n") + criteria + "\n";
+        renderSections();
+      });
+
+      renderSections();
+    </script>
+  </body>
+</html>
